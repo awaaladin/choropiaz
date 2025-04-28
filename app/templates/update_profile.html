@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% block title %}Update Profile{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h3>Update Your Profile</h3>
+
+    <div class="card mb-4 p-4 shadow-lg rounded-lg">
+        <form method="POST" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+                {{ form.profile_picture.label(class="form-label") }}
+                {{ form.profile_picture(class="form-control") }}
+                {% if form.profile_picture.errors %}
+                    <div class="text-danger">
+                        {% for error in form.profile_picture.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                {{ form.username.label(class="form-label") }}
+                {{ form.username(class="form-control") }}
+                {% if form.username.errors %}
+                    <div class="text-danger">
+                        {% for error in form.username.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.age.label(class="form-label") }}
+                {{ form.age(class="form-control") }}
+                {% if form.age.errors %}
+                    <div class="text-danger">
+                        {% for error in form.age.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.work.label(class="form-label") }}
+                {{ form.work(class="form-control") }}
+                {% if form.work.errors %}
+                    <div class="text-danger">
+                        {% for error in form.work.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                {{ form.bio.label(class="form-label") }}
+                {{ form.bio(class="form-control") }}
+                {% if form.bio.errors %}
+                    <div class="text-danger">
+                        {% for error in form.bio.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {{ form.submit(class="btn btn-primary btn-block mt-3") }}
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+<style>
+    /* Styling for the update profile page */
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .card {
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h3 {
+        color: #2c3e50;
+        font-weight: bold;
+    }
+
+    .form-label {
+        font-weight: bold;
+        color: #34495e;
+    }
+
+    .form-control {
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .form-control:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+    }
+
+    .btn-primary {
+        background-color: #3498db;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        font-size: 16px;
+    }
+
+    .btn-primary:hover {
+        background-color: #2980b9;
+        cursor: pointer;
+    }
+
+    .mt-3 {
+        margin-top: 15px;
+    }
+
+    /* Error message styling */
+    .text-danger {
+        color: #e74c3c;
+        font-size: 0.875rem;
+    }
+
+    .form-control:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+    }
+
+    .btn-primary {
+        background-color: #3498db;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        font-size: 16px;
+    }
+
+    .btn-primary:hover {
+        background-color: #2980b9;
+        cursor: pointer;
+    }
+
+</style>

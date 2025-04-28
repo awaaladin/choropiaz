@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h3>Your Profile</h3>
+
+    <div class="card mb-4 p-4 shadow-lg rounded-lg">
+        <div class="row">
+            <div class="col-md-4">
+                <img src="{{ url_for('static', filename='profile_pics/' + current_user.profile_picture) }}" alt="Profile Picture" class="rounded-circle" style="width: 150px; height: 150px;">
+            </div>
+            <div class="col-md-8">
+                <h4>{{ current_user.username }}</h4>
+                <p><strong>Age:</strong> {{ current_user.age }}</p>
+                <p><strong>Work:</strong> {{ current_user.work }}</p>
+                <p><strong>Bio:</strong> {{ current_user.bio }}</p>
+            </div>
+        </div>
+    </div>
+
+    <a href="{{ url_for('views.update_profile') }}" class="btn btn-primary mt-3">Update Profile</a>
+</div>
+{% endblock %}

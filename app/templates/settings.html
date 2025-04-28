@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+
+{% block title %}Account Settings{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <!-- Toggle Button for Sidebar (only on small screens) -->
+        <button class="custom-sidebar-toggle" id="sidebar-toggle">☰</button>
+
+        <div class="row">
+            <div class="col-lg-3 custom-sidebar">
+                <!-- Sidebar -->
+                <h2>Settings</h2>
+                <ul>
+                    <li><a href="#">General</a></li>
+                    <li><a href="#">Privacy</a></li>
+                    <li><a href="#">Notifications</a></li>
+                    <li><a href="#">Account</a></li>
+                    <li><a href="#">Help</a></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-9 custom-settings-main">
+                <!-- Settings Content -->
+                <div class="custom-header d-flex justify-content-between align-items-center mb-4">
+                    <h1>Account Settings</h1>
+                    <button id="theme-toggle" class="theme-toggle">🌙 Dark Mode</button>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+                    <div class="custom-settings-options">
+                        <div class="custom-option">
+                            <h3>Change Profile Picture</h3>
+                            <button type="button" class="btn btn-secondary">Change Picture</button>
+                        </div>
+
+                        <div class="custom-option">
+                            <h3>Change Email</h3>
+                            {{ form.email(class_='form-control', label='Email') }}
+                        </div>
+
+                        <div class="custom-option">
+                            <h3>Change Password</h3>
+                            {{ form.password(class_='form-control', label='Password') }}
+                        </div>
+
+                        <div class="custom-option">
+                            <h3>Language</h3>
+                            {{ form.language(class_='form-control') }}
+                        </div>
+
+                        <div class="custom-option">
+                            <h3>Notification Preferences</h3>
+                            {{ form.notifications() }} Email Notifications
+                        </div>
+
+                        <div class="custom-option">
+                            <button type="submit" class="btn btn-primary">Update Settings</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle Sidebar Visibility on Small Screens
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebar = document.querySelector('.custom-sidebar');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('custom-sidebar-visible');
+        });
+
+        // Toggle Dark Mode
+        const themeToggle = document.getElementById('theme-toggle');
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            themeToggle.textContent = document.body.classList.contains('dark-mode') ? '☀️ Light Mode' : '🌙 Dark Mode';
+        });
+    </script>
+{% endblock %}
+
+
+
+
+
+
+
+
+<style>
+ /* General container setup */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px;
+}
+
+/* Sidebar styling */
+.custom-sidebar {
+    background-color: #2d73b9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    left: -250px;  /* Sidebar hidden by default on small screens */
+    bottom: 0;
+    width: 250px;
+    z-index: 999;
+    transition: transform 0.3s ease;
+    height: 100%;
+}
+
+/* Sidebar visible on small screens */
+.custom-sidebar-visible {
+    transform: translateX(250px); /* Move sidebar into view */
+}
+
+/* Sidebar menu items */
+.custom-sidebar ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.custom-sidebar ul li {
+    margin: 10px 0;
+}
+
+.custom-sidebar ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 16px;
+    transition: color 0.3s;
+}
+
+.custom-sidebar ul li a:hover {
+    color: #007bff;
+}
+
+/* Toggle button for sidebar on small screens */
+.custom-sidebar-toggle {
+    display: block;
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 50%;
+    font-size: 24px;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    cursor: pointer;
+    z-index: 9999;
+}
+
+/* Main settings area */
+.custom-settings-main {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-left: 250px; /* Leave space for the sidebar on large screens */
+}
+
+/* Header section in the settings page */
+.custom-settings-main .custom-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.custom-settings-main .custom-header h1 {
+    font-size: 28px;
+}
+
+.custom-settings-main .theme-toggle {
+    font-size: 18px;
+    background-color: transparent;
+    border: 2px solid #007bff;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.custom-settings-main .theme-toggle:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+/* Form settings options */
+.custom-settings-options .custom-option {
+    margin-bottom: 20px;
+}
+
+.custom-settings-options .custom-option h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.custom-settings-options .form-control {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    margin-top: 10px;
+}
+
+/* Button styling */
+.custom-settings-options button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.custom-settings-options button:hover {
+    background-color: #0056b3;
+}
+
+/* Media Query for small screens */
+@media (max-width: 992px) {
+    /* Sidebar for small screens */
+    .custom-sidebar {
+        position: fixed;
+        top: 0;
+        left: -250px; /* Sidebar starts off-screen */
+        bottom: 0;
+        width: 250px;
+        z-index: 999;
+        transform: translateX(-250px); /* Initially hidden */
+        overflow-y: auto;
+        height: 100%;
+    }
+
+    /* Sidebar visible on small screens */
+    .custom-sidebar-visible {
+        transform: translateX(0); /* Sidebar comes into view */
+    }
+
+    /* Toggle button for sidebar */
+    .custom-sidebar-toggle {
+        display: block;
+        background-color: #007bff;
+        color: white;
+        padding: 10px;
+        border: none;
+        border-radius: 50%;
+        font-size: 24px;
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        cursor: pointer;
+        z-index: 10000; /* Ensure the button is above everything else */
+    }
+
+    /* Ensure content is not pushed up */
+    .custom-settings-main {
+        margin-left: 0; /* Avoid space for sidebar */
+    }
+}
+
+</style>

@@ -1,0 +1,443 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!-- CREATE POST FORM -->
+<div class="create-post-form">
+  <form id="create-post-form" action="{{ url_for('views.create_post') }}" method="POST" enctype="multipart/form-data">
+  <h2>Create a New Post</h2>
+  <form action="{{ url_for('views.create_post') }}" method="POST" enctype="multipart/form-data">
+      <textarea name="caption" placeholder="Write your caption..." required></textarea>
+
+      <select name="category" required>
+          <option value="">Select Category</option>
+          <option value="goods">Goods</option>
+          <option value="services">Services</option>
+          <option value="info">Info</option>
+      </select>
+
+      <div class="file-inputs">
+          <label>Image: <input type="file" name="image"></label>
+          <label>Video: <input type="file" name="video"></label>
+      </div>
+
+      <button type="submit">Post</button>
+  </form>
+</div>
+
+
+
+<div id="storyModal" class="modal">
+  <span class="close" onclick="closeStoryModal()">&times;</span>
+  <div class="modal-content">
+    <img id="modalImage" src="" alt="Story Full View">
+    <video id="modalVideo" controls style="display:none;"></video>
+  </div>
+</div>
+<div class="filters">
+  <a href="{{ url_for('views.feed', sort='recent') }}">Recent</a>
+  <a href="{{ url_for('views.feed', sort='likes') }}">Most Liked</a>
+  <a href="{{ url_for('views.feed', sort='trending') }}">Trending</a>
+</div>
+
+
+<!-- Search bar -->
+<form method="GET" action="{{ url_for('views.feed') }}" class="search-form">
+  <input type="text" name="search" placeholder="Search by category..." value="{{ search_query or '' }}">
+  <button type="submit">Search</button>
+</form>
+
+<!-- Category filter buttons -->
+<div class="category-wrapper">
+  <div class="category-filters">
+    <a href="{{ url_for('views.feed') }}" class="{{ 'active' if not search_query else '' }}">🔄 All</a>
+    <a href="{{ url_for('views.feed', search='Goods') }}" class="{{ 'active' if search_query == 'Goods' else '' }}">🛒 Goods</a>
+    <a href="{{ url_for('views.feed', search='Services') }}" class="{{ 'active' if search_query == 'Services' else '' }}">🛠️ Services</a>
+    <a href="{{ url_for('views.feed', search='Info') }}" class="{{ 'active' if search_query == 'Info' else '' }}">ℹ️ Info</a>
+  </div>
+  
+  <!-- Weekly stories by category -->
+  <div class="stories-wrapper">
+    {% for category, story_posts in top_weekly_posts.items() %}
+      <div class="story-category">
+        <h3>{{ category }}</h3>
+        <div class="story-carousel" id="carousel-{{ category }}">
+          {% for post in story_posts %}
+            <div class="story-item {% if post.is_new %}new-story{% endif %}"
+              onclick="openStoryModal('{{ post.media_type }}', '{{ url_for('static', filename=post.media_path or 'default.jpg') }}')">
+              {% if post.media_type == 'image' %}
+                <img src="{{ url_for('static', filename=post.media_path) }}" alt="Story Image">
+              {% elif post.media_type == 'video' %}
+                <video muted>
+                  <source src="{{ url_for('static', filename=post.media_path) }}" type="video/mp4">
+                </video>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+
+<!-- Main Feed Layout -->
+<div class="feed-container">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <ul>
+      <li><a href="{{ url_for('views.home') }}">🏠 Home</a></li>
+      <li><a href="{{ url_for('auth.user_profile', username=current_user.username) }}">👤 Profile</a></li>
+      <li><a href="{{ url_for('auth.logout') }}">🚪 Logout</a></li>
+    </ul>
+  </aside>
+
+  <!-- Feed -->
+  <main class="feed">
+
+
+    <!-- Display Posts -->
+    {% for post in posts %}
+      <div class="post-card">
+        <div class="post-header">
+          <img src="{{ url_for('static', filename='profile_pics/' + post.user.profile_picture) }}" class="avatar" alt="{{ post.user.username }}'s profile picture">
+          <div>
+            <strong>{{ post.user.username }}</strong><br>
+            <small>{{ post.timestamp.strftime('%b %d, %Y %H:%M') }}</small><br>
+            <small>Followers: {{ post.user.followers.count() }}</small><br>
+
+            {% if post.user.bio %}
+              <small>{{ post.user.bio }}</small><br>
+            {% endif %}
+            {% if post.user.work %}
+              <small>💼 {{ post.user.work }}</small><br>
+            {% endif %}
+            {% if post.user.age %}
+              <small>🎂 Age: {{ post.user.age }}</small><br>
+            {% endif %}
+          </div>
+
+          {% if post.user != current_user %}
+            <form method="POST" action="{{ url_for('follow_user', user_id=post.user.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button class="follow-btn">Follow</button>
+            </form>
+          {% endif %}
+        </div>
+
+        {% if post.media_type == 'image' %}
+          <img src="{{ url_for('static', filename=post.media_path or 'default.jpg') }}" alt="Post Image">
+        {% elif post.media_type == 'video' %}
+          <video controls>
+            <source src="{{ url_for('static', filename=post.media_path) }}" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        {% endif %}
+
+        <div class="post-caption">
+          {{ post.caption }}
+        </div>
+
+        {% if post.category %}
+          <div class="post-meta">
+            📁 Category: <strong>{{ post.category }}</strong>
+          </div>
+        {% endif %}
+
+        <div class="post-actions">
+          <form method="POST" action="{{ url_for('views.like_post', post_id=post.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit">❤️ Like</button>
+          </form>
+          <a href="{{ url_for('views.comment_post', post_id=post.id) }}">💬 Comment</a>
+        </div>
+
+        {% if post.user == current_user %}
+          <button onclick="openModal({{ post.id }})" class="delete-btn">🗑️ Delete</button>
+
+          <!-- Delete Modal -->
+          <div id="modal-{{ post.id }}" class="modal">
+            <div class="modal-content">
+              <span class="close" onclick="closeModal({{ post.id }})">&times;</span>
+              <h3>Confirm Deletion</h3>
+              <form method="POST" action="{{ url_for('views.delete_post', post_id=post.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="password" name="password" placeholder="Enter your password" required>
+                <button type="submit" class="confirm-delete-btn">Delete Post</button>
+              </form>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </main>
+</div>
+
+
+
+
+
+
+
+
+<script>
+    function confirmDelete(form) {
+      return confirm("Are you sure you want to delete this post?");
+    }
+
+    function openModal(postId) {
+      document.getElementById(`modal-${postId}`).style.display = "block";
+    }
+    
+    function closeModal(postId) {
+      document.getElementById(`modal-${postId}`).style.display = "none";
+    }
+    
+    // Optional: Close modal when clicking outside of it
+    window.onclick = function(event) {
+      document.querySelectorAll('.modal').forEach(modal => {
+        if (event.target === modal) {
+          modal.style.display = "none";
+        }
+      });
+    }
+
+    function nextStory(category) {
+      const carousel = document.getElementById(`carousel-${category}`);
+      const current = carousel.querySelector('.story-item:first-child');
+      carousel.appendChild(current); // move current to end
+    }
+
+    function openStoryModal(type, src) {
+      const modal = document.getElementById("storyModal");
+      const img = document.getElementById("modalImage");
+      const video = document.getElementById("modalVideo");
+    
+      if (type === "image") {
+        img.src = src;
+        img.style.display = "block";
+        video.style.display = "none";
+      } else {
+        video.src = src;
+        video.style.display = "block";
+        img.style.display = "none";
+      }
+    
+      modal.style.display = "block";
+    }
+    
+    function closeStoryModal() {
+      const modal = document.getElementById("storyModal");
+      modal.style.display = "none";
+      document.getElementById("modalImage").src = "";
+      document.getElementById("modalVideo").src = "";
+    }
+    
+    window.onclick = function(event) {
+      const modal = document.getElementById("storyModal");
+      if (event.target === modal) closeStoryModal();
+    };
+
+
+    function openStoryModal(mediaType, mediaPath) {
+    var imageModal = document.getElementById("modalImage");
+    var videoModal = document.getElementById("modalVideo");
+
+    if (mediaType === 'image') {
+        imageModal.style.display = 'block';
+        imageModal.src = mediaPath;
+        videoModal.style.display = 'none';
+    } else if (mediaType === 'video') {
+        videoModal.style.display = 'block';
+        videoModal.src = mediaPath;
+        imageModal.style.display = 'none';
+    }
+
+    document.getElementById("storyModal").style.display = 'block';
+
+  }
+function closeStoryModal() {
+    document.getElementById("storyModal").style.display = 'none';
+}
+
+document.querySelector('.close').addEventListener('click', closeStoryModal);
+
+function nextStory(category) {
+    var carousel = document.getElementById("carousel-" + category);
+    var firstStory = carousel.querySelector('.story-item');
+    firstStory.click();
+}
+let current = 0;
+const items = document.querySelectorAll('.story-item');
+
+function showItem(index) {
+  items.forEach((item, i) => {
+    item.style.display = i === index ? 'block' : 'none';
+  });
+}
+
+function nextStory() {
+  current = (current + 1) % items.length;
+  showItem(current);
+}
+
+setInterval(nextStory, 5000); 
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('create-post-form');
+
+    form.addEventListener('submit', function(event) {
+        event.preventDefault(); // stop form from normal submit
+
+        const formData = new FormData(form);
+
+        fetch('{{ url_for('views.create_post') }}', {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.text(); // server returns something
+            } else {
+                throw new Error('Failed to create post.');
+            }
+        })
+        .then(data => {
+            // Optional: Clear the form after success
+            form.reset();
+            
+            // Optionally, you could dynamically update the feed without refreshing
+            alert('Post created successfully! 🎉');
+            
+            // Reload the page or fetch new posts
+            location.reload();
+        })
+        .catch(error => {
+            console.error(error);
+            alert('There was an error posting. 🚫');
+        });
+    });
+});
+
+
+</script>
+    
+    
+<style>
+    /* Wrapper for the whole stories area */
+.stories-wrapper {
+  padding: 1rem;
+  background-color: #fff;
+  border-radius: 1rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Category title (e.g., Goods, Services) */
+.story-category h3 {
+  margin: 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Horizontal carousel */
+.story-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 0.5rem;
+  gap: 1rem;
+}
+
+/* Hide scrollbars */
+.story-carousel::-webkit-scrollbar {
+  display: none;
+}
+.story-carousel {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Individual story item */
+.story-item {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  width: 100px;
+  height: 160px;
+  border-radius: 1rem;
+  background-color: #f3f4f6;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.story-item:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+/* Image and video inside story */
+.story-item img,
+.story-item video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.story-item.new-story {
+  border: 3px solid transparent;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+  position: relative;
+}
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  padding-top: 60px;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.9);
+}
+
+.modal-content {
+  margin: auto;
+  display: block;
+  max-width: 90%;
+  max-height: 80vh;
+}
+
+.close {
+  position: absolute;
+  top: 30px;
+  right: 50px;
+  font-size: 40px;
+  color: white;
+  cursor: pointer;
+}
+.story-carousel {
+    display: flex;
+    overflow-x: scroll;
+    gap: 10px;
+}
+.story-item {
+    flex-shrink: 0;
+    max-width: 200px;
+    height: auto;
+}
+
+
+
+</style>
+    
+
+{% endblock %}
