@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from app.routes import posts
 
 db = SQLAlchemy()
 
@@ -11,6 +12,6 @@ def create_app():
     db.init_app(app)
 
     from app.routes import posts  # import routes after app is ready
-    app.register_blueprint(posts.bp)
+    # app.register_blueprint(views.bp)
 
     return app

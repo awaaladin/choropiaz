@@ -12,7 +12,7 @@ from app.forms import SettingsForm
 
 
 
-views = Blueprint('posts', __name__)
+views = Blueprint('views', __name__)
 
 # --- Constants ---
 UPLOAD_FOLDER = os.path.join("static", "uploads")
