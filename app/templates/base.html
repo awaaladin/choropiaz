@@ -6,68 +6,145 @@
     <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}CHOROPIA{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8jhAXg+W0kdpEQaZTznuEEiYgcr6+qVvPB8ElU+v3vls8R" crossorigin="anonymous">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        choropia: {
+                            blue: '#1877F2',
+                            green: '#42B72A',
+                            gray: '#F0F2F5',
+                            light: '#FFFFFF',
+                            dark: '#18191A',
+                            text: '#050505',
+                            secondary: '#65676B'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  
-
-
-
-
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('views.home') }}" style="color: blue;  margin-left: 350px;">CHOROPIA</a>
-    
-            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-                <ul class="navbar-nav">
+<body class="bg-choropia-gray min-h-screen">
+    <!-- Fixed Top Navigation -->
+    <nav class="fixed top-0 left-0 right-0 bg-white shadow-md z-50">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo and Search -->
+                <div class="flex items-center space-x-4">
+                    <a href="{{ url_for('views.home') }}" class="text-choropia-blue text-3xl font-bold tracking-tight">CHOROPIA</a>
+                    <div class="relative">
+                        <input type="text" placeholder="Search Choropia" class="bg-choropia-gray rounded-full py-2 px-4 pl-10 w-64 focus:outline-none">
+                        <i class="bi bi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-choropia-secondary"></i>
+                    </div>
+                </div>
+
+                <!-- Main Navigation -->
+                <div class="hidden md:flex items-center space-x-1">
                     {% if current_user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('views.home') }}">
-                                <i class="bi bi-house-door"></i> <span class="nav-text">Home</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('views.profile') }}">
-                                <i class="bi bi-person-circle"></i> <span class="nav-text">Profile</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('views.settings') }}">
-                                <i class="bi bi-gear"></i> <span class="nav-text">Settings</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.logout') }}">
-                                <i class="bi bi-box-arrow-right"></i> <span class="nav-text">Logout</span>
-                            </a>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.login') }}">
-                                <i class="bi bi-box-arrow-in-right"></i> <span class="nav-text">Login</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.register') }}">
-                                <i class="bi bi-person-plus"></i> <span class="nav-text">Register</span>
-                            </a>
-                        </li>
+                        <a href="{{ url_for('views.home') }}" class="nav-icon-link group">
+                            <div class="p-2 mx-2 rounded-lg group-hover:bg-choropia-gray">
+                                <i class="bi bi-house-door text-2xl"></i>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('views.feed') }}" class="nav-icon-link group">
+                            <div class="p-2 mx-2 rounded-lg group-hover:bg-choropia-gray">
+                                <i class="bi bi-collection text-2xl"></i>
+                            </div>
+                        </a>
+                        <a href="#" class="nav-icon-link group">
+                            <div class="p-2 mx-2 rounded-lg group-hover:bg-choropia-gray">
+                                <i class="bi bi-shop text-2xl"></i>
+                            </div>
+                        </a>
                     {% endif %}
-                </ul>
+                </div>
+
+                <!-- Right Navigation -->
+                <div class="flex items-center space-x-2">
+                    {% if current_user.is_authenticated %}
+                        <div class="relative group">
+                            <button class="p-2 rounded-full bg-choropia-gray hover:bg-gray-200">
+                                <i class="bi bi-bell text-xl"></i>
+                            </button>
+                        </div>
+                        <div class="relative group">
+                            <button class="p-2 rounded-full bg-choropia-gray hover:bg-gray-200">
+                                <i class="bi bi-chat-dots text-xl"></i>
+                            </button>
+                        </div>
+                        <div class="relative group ml-1">
+                            <button id="profileDropdown" class="flex items-center">
+                                <img src="{{ url_for('static', filename='profile_pics/' + current_user.profile_picture) }}" class="w-10 h-10 rounded-full border-2 border-white" alt="Profile Picture">
+                            </button>
+                            <div id="profileMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50">
+                                <a href="{{ url_for('views.profile') }}" class="block px-4 py-2 text-sm text-choropia-text hover:bg-choropia-gray">
+                                    <i class="bi bi-person-circle mr-2"></i> Profile
+                                </a>
+                                <a href="{{ url_for('views.settings') }}" class="block px-4 py-2 text-sm text-choropia-text hover:bg-choropia-gray">
+                                    <i class="bi bi-gear mr-2"></i> Settings
+                                </a>
+                                <hr class="my-1">
+                                <a href="{{ url_for('auth.logout') }}" class="block px-4 py-2 text-sm text-choropia-text hover:bg-choropia-gray">
+                                    <i class="bi bi-box-arrow-right mr-2"></i> Logout
+                                </a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{{ url_for('auth.login') }}" class="px-4 py-2 text-choropia-blue font-semibold hover:underline">
+                            Login
+                        </a>
+                        <a href="{{ url_for('auth.register') }}" class="px-4 py-2 bg-choropia-green text-white font-semibold rounded-md hover:bg-green-600">
+                            Register
+                        </a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </nav>
     
+    <!-- Mobile Navigation (Bottom) -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30">
+        <div class="flex justify-around">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('views.home') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
+                    <i class="bi bi-house-door text-xl"></i>
+                </a>
+                <a href="{{ url_for('views.feed') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
+                    <i class="bi bi-collection text-xl"></i>
+                </a>
+                <a href="#" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
+                    <i class="bi bi-shop text-xl"></i>
+                </a>
+                <a href="{{ url_for('views.profile') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
+                    <i class="bi bi-person-circle text-xl"></i>
+                </a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
+                    <i class="bi bi-box-arrow-in-right text-xl"></i>
+                    <span class="text-xs">Login</span>
+                </a>
+                <a href="{{ url_for('auth.register') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
+                    <i class="bi bi-person-plus text-xl"></i>
+                    <span class="text-xs">Register</span>
+                </a>
+            {% endif %}
+        </div>
+    </div>
     
     <!-- Flash Messages -->
-    <div class="container">
+    <div class="container mx-auto px-4 pt-20">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="mb-4 rounded-lg px-4 py-3 {% if category == 'error' %}bg-red-100 text-red-700{% elif category == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %} flex justify-between items-center">
+                        <div>{{ message }}</div>
+                        <button type="button" class="close-alert" onclick="this.parentElement.style.display='none'">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
                     </div>
                 {% endfor %}
             {% endif %}
@@ -75,14 +152,23 @@
     </div>
 
     <!-- Page Content -->
-    <div class="container">
+    <div class="container mx-auto px-4 pb-16 md:pb-0">
         {% block content %}{% endblock %}
     </div>
 
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76A2z02tPqdj+O3U2U6z+JceNvD+IW3nER5i0SDA7M6Uj5XjYk5B+AmD6JO5g4N" crossorigin="anonymous"></script>
-
+    <script>
+        // Toggle profile dropdown
+        document.getElementById('profileDropdown')?.addEventListener('click', function() {
+            const menu = document.getElementById('profileMenu');
+            menu.classList.toggle('hidden');
+        });
+        
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function(e) {
+            if (!document.getElementById('profileDropdown')?.contains(e.target)) {
+                document.getElementById('profileMenu')?.classList.add('hidden');
+            }
+        });
+    </script>
 </body>
 </html>
-
-
