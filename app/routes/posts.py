@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
+from flask import Blueprint, render_template, request, redirect, url_for, flash, abort, jsonify
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash
@@ -6,9 +6,10 @@ from datetime import datetime, timedelta
 import os
 from app import db
 from app.models.models import Post, Comment, Like, User, Category
-from app.forms import PostForm, ProfileForm, RegisterForm
+from app.forms import PostForm, ProfileForm, RegisterForm, SettingsForm, UpdateProfileForm, ReelForm
 from PIL import Image
-from app.forms import SettingsForm
+from flask_socketio import SocketIO, emit
+from app.extensions import socketio
 
 
 
@@ -24,6 +25,21 @@ PROFILE_PIC_FOLDER = 'static/profile_pics'
 # Ensure the folder exists
 if not os.path.exists(PROFILE_PIC_FOLDER):
     os.makedirs(PROFILE_PIC_FOLDER)
+
+
+
+
+@socketio.on('connect')
+def handle_connect():
+    # Emit latest notifications to the connected user
+    notifications = get_user_notifications(current_user.id)
+    emit('notifications', notifications)
+
+def send_daily_notification(user_id, message):
+    socketio.emit('new_notification', {'message': message}, room=user_id)
+
+
+
 
 def save_picture(form_picture):
     # Secure the filename (sanitize any unsafe characters)
@@ -227,7 +243,7 @@ def create_post():
         db.session.commit()
 
         flash("Post created successfully!", "success")
-
+        return redirect(url_for('views.feed'))
     # return redirect(url_for('views.feed'))
     return 'Post created', 200
 
@@ -292,7 +308,7 @@ def profile():
             db.session.commit()
             flash('Profile updated!', 'success')
         return redirect(url_for('views.profile'))
-    return render_template('profile.html', form=form)
+    return render_template('profile.html', form=form, user=current_user)
 
 @views.route('/user/<int:user_id>')
 @login_required
@@ -373,4 +389,96 @@ def settings():
         return redirect(url_for('settings'))  # Reload settings page after update
 
     return render_template('settings.html', form=form, user_data=user_data)
+
+@views.route('/reels')
+@login_required
+def reels():
+    # Query posts with video media type
+    reels = Post.query.filter_by(media_type='video').order_by(Post.timestamp.desc()).all()
+    return render_template('reels.html', reels=reels)
+
+
+@views.route('/reels/<int:reel_id>/like', methods=['POST'])
+@login_required
+def like_reel(reel_id):
+    reel = Post.query.get_or_404(reel_id)
+    
+    # Check if user has already liked the reel
+    existing_like = Like.query.filter_by(user_id=current_user.id, post_id=reel_id).first()
+    
+    if existing_like:
+        # Unlike the reel
+        db.session.delete(existing_like)
+        db.session.commit()
+        return jsonify({'liked': False, 'likes_count': len(reel.likes)})
+    else:
+        # Like the reel
+        new_like = Like(user_id=current_user.id, post_id=reel_id)
+        db.session.add(new_like)
+        db.session.commit()
+        return jsonify({'liked': True, 'likes_count': len(reel.likes)})
+
+
+@views.route('/create_reel', methods=['GET', 'POST'])
+@login_required
+def create_reel():
+    form = ReelForm()
+    if form.validate_on_submit():
+        # Handle video upload
+        video = form.video.data
+        filename = secure_filename(video.filename)
+        video_path = os.path.join(UPLOAD_FOLDER, filename)
+        video.save(video_path)
+
+        # Create a new reel post
+        new_reel = Post(
+            content=form.description.data or '',
+            media_path=video_path,
+            media_type='video',
+            user_id=current_user.id,
+            category=Category.INFO,  # Default category for reels
+            views=0
+        )
+        
+        db.session.add(new_reel)
+        db.session.commit()
+
+        flash('Reel created successfully!', 'success')
+        return redirect(url_for('views.reels'))
+
+    return render_template('create_reel.html', form=form)
+
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@views.route('/update_profile_picture', methods=['POST'])
+@login_required
+def update_profile_picture():
+    if 'profile_picture' not in request.files:
+        flash('No file part')
+        return redirect(url_for('views.profile'))
+
+    file = request.files['profile_picture']
+    if file.filename == '':
+        flash('No selected file')
+        return redirect(url_for('views.profile'))
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file_path = os.path.join('app/static/profile_pics', filename)
+        file.save(file_path)
+
+        current_user.profile_picture = filename  # Assuming you have this field
+        db.session.commit()
+        flash('Profile picture updated!')
+    else:
+        flash('Invalid file format.')
+
+    return redirect(url_for('views.profile'))
+
+
+
 

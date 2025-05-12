@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100 pt-14 pb-20">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-4">
+            <div class="flex items-center justify-between">
+                <a href="{{ url_for('views.reels') }}" class="text-white">
+                    <i class="bi bi-arrow-left text-2xl"></i>
+                </a>
+                <h1 class="text-xl font-bold text-white">Create Reel</h1>
+                <div class="w-8"></div> <!-- Spacer for alignment -->
+            </div>
+        </div>
+
+        <!-- Form Content -->
+        <form method="POST" enctype="multipart/form-data" class="p-5">
+            {{ form.hidden_tag() }}
+            
+            <!-- Video Upload Section -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-gray-700 font-semibold">Select Video</label>
+                    <span class="text-xs text-gray-500">Max 60 seconds</span>
+                </div>
+                
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors">
+                    <div id="upload-placeholder" class="flex flex-col items-center">
+                        <i class="bi bi-cloud-arrow-up text-5xl text-gray-400 mb-3"></i>
+                        <p class="text-gray-500 mb-2">Tap to upload a video</p>
+                        <p class="text-xs text-gray-400">Supports: MP4, MOV, AVI, WEBM</p>
+                    </div>
+                    
+                    <div id="video-preview" class="hidden">
+                        <video id="preview-player" class="w-full rounded-lg" controls></video>
+                    </div>
+                    
+                    {{ form.video(class="hidden", id="video-upload") }}
+                </div>
+                
+                {% if form.video.errors %}
+                    <div class="text-red-500 mt-2 text-sm">
+                        {% for error in form.video.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Description Section -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-gray-700 font-semibold">Description</label>
+                    <span class="text-xs text-gray-500" id="char-count">0/200</span>
+                </div>
+                
+                {{ form.description(class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all", 
+                    rows="3", 
+                    placeholder="Write a caption...",
+                    maxlength="200") }}
+            </div>
+            
+            <!-- Music Option (For design, non-functional) -->
+            <div class="mb-6 p-4 border border-gray-200 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="bi bi-music-note text-gray-500 text-xl mr-3"></i>
+                        <div>
+                            <p class="font-medium">Add Music</p>
+                            <p class="text-xs text-gray-500">Select a track for your reel</p>
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-right text-gray-400"></i>
+                </div>
+            </div>
+            
+            <!-- Submit Button -->
+            {{ form.submit(class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold py-3 px-4 rounded-lg hover:opacity-90 transition") }}
+        </form>
+    </div>
+</div>
+
+<script>
+// Handle file upload preview
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadPlaceholder = document.getElementById('upload-placeholder');
+    const videoPreview = document.getElementById('video-preview');
+    const previewPlayer = document.getElementById('preview-player');
+    const videoUpload = document.getElementById('video-upload');
+    const descField = document.getElementById('description');
+    const charCount = document.getElementById('char-count');
+    
+    // Trigger file input when clicking on the upload area
+    uploadPlaceholder.addEventListener('click', function() {
+        videoUpload.click();
+    });
+    
+    // Show preview when a file is selected
+    videoUpload.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const file = this.files[0];
+            const fileURL = URL.createObjectURL(file);
+            
+            previewPlayer.src = fileURL;
+            uploadPlaceholder.classList.add('hidden');
+            videoPreview.classList.remove('hidden');
+            
+            // Auto-play preview
+            previewPlayer.play();
+        }
+    });
+    
+    // Character counter for description
+    if (descField) {
+        descField.addEventListener('input', function() {
+            const currentLength = this.value.length;
+            charCount.textContent = `${currentLength}/200`;
+            
+            // Change color when approaching limit
+            if (currentLength > 180) {
+                charCount.classList.add('text-yellow-500');
+            } else if (currentLength > 195) {
+                charCount.classList.add('text-red-500');
+                charCount.classList.remove('text-yellow-500');
+            } else {
+                charCount.classList.remove('text-yellow-500', 'text-red-500');
+            }
+        });
+    }
+    
+    // Drag and drop functionality
+    const dropArea = uploadPlaceholder.parentElement;
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight() {
+        dropArea.classList.add('border-blue-500', 'bg-blue-50');
+    }
+    
+    function unhighlight() {
+        dropArea.classList.remove('border-blue-500', 'bg-blue-50');
+    }
+    
+    dropArea.addEventListener('drop', handleDrop, false);
+    
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        if (files && files[0]) {
+            videoUpload.files = files;
+            const event = new Event('change');
+            videoUpload.dispatchEvent(event);
+        }
+    }
+});
+</script>
+{% endblock %}

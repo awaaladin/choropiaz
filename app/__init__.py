@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect, CSRFError, generate_csrf
+from app.extensions import socketio
 
 # Initialize extensions
 db = SQLAlchemy()
@@ -22,7 +23,8 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     csrf.init_app(app)
-    migrate.init_app(app, db)  # ✅ Use migrate.init_app, not just Migrate(app, db)
+    migrate.init_app(app, db)  
+    socketio.init_app(app)
 
     @app.context_processor
     def inject_csrf_token():

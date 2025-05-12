@@ -1,152 +1,594 @@
 {% extends 'base.html' %}
 {% block title %}Update Profile{% endblock %}
 {% block content %}
-<div class="container mt-4">
-    <h3>Update Your Profile</h3>
+<div class="update-profile-container">
+    <div class="page-header">
+        <h1><i class="fas fa-user-edit"></i> Update Your Profile</h1>
+    </div>
 
-    <div class="card mb-4 p-4 shadow-lg rounded-lg">
-        <form method="POST" enctype="multipart/form-data">
-            {{ form.hidden_tag() }}
+    <div class="profile-edit-card">
+        <div class="profile-preview">
+            <div class="preview-header">
+                <h3>Profile Preview</h3>
+            </div>
+            <div class="preview-content">
+                <div class="preview-image-container">
+                    <img id="preview-image" src="{{ url_for('static', filename='profile_pics/' + current_user.profile_picture) }}" alt="Profile Picture" class="preview-image">
+                </div>
+                <div class="preview-info">
+                    <div class="preview-name" id="preview-username">{{ current_user.username }}</div>
+                    <div class="preview-details">
+                        <div class="preview-item">
+                            <i class="fas fa-birthday-cake"></i>
+                            <span id="preview-age">{{ current_user.age }}</span> years old
+                        </div>
+                        <div class="preview-item">
+                            <i class="fas fa-briefcase"></i>
+                            Works at <span id="preview-work">{{ current_user.work }}</span>
+                        </div>
+                    </div>
+                    <div class="preview-bio">
+                        <i class="fas fa-quote-left"></i>
+                        <span id="preview-bio">{{ current_user.bio }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-            <div class="mb-3">
-                {{ form.profile_picture.label(class="form-label") }}
-                {{ form.profile_picture(class="form-control") }}
-                {% if form.profile_picture.errors %}
-                    <div class="text-danger">
-                        {% for error in form.profile_picture.errors %}
-                            <p>{{ error }}</p>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-            
-            <div class="mb-3">
-                {{ form.username.label(class="form-label") }}
-                {{ form.username(class="form-control") }}
-                {% if form.username.errors %}
-                    <div class="text-danger">
-                        {% for error in form.username.errors %}
-                            <p>{{ error }}</p>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
+        <div class="form-container">
+            <form method="POST" enctype="multipart/form-data" id="profile-form">
+                {{ form.hidden_tag() }}
 
-            <div class="mb-3">
-                {{ form.age.label(class="form-label") }}
-                {{ form.age(class="form-control") }}
-                {% if form.age.errors %}
-                    <div class="text-danger">
-                        {% for error in form.age.errors %}
-                            <p>{{ error }}</p>
-                        {% endfor %}
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-image"></i>
+                        <h3>Profile Picture</h3>
                     </div>
-                {% endif %}
-            </div>
+                    <div class="form-group">
+                        <div class="custom-file-upload">
+                            <div class="file-preview">
+                                <img id="file-preview-image" src="{{ url_for('static', filename='profile_pics/' + current_user.profile_picture) }}" alt="Current Profile Picture">
+                            </div>
+                            <div class="file-input-container">
+                                {{ form.profile_picture(class="file-input", id="profile_picture_input") }}
+                                <label for="profile_picture_input" class="file-label">
+                                    <i class="fas fa-camera"></i> Choose New Photo
+                                </label>
+                                <p class="file-info">JPG, PNG or GIF. Max 5MB.</p>
+                            </div>
+                        </div>
+                        {% if form.profile_picture.errors %}
+                            <div class="error-message">
+                                {% for error in form.profile_picture.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
 
-            <div class="mb-3">
-                {{ form.work.label(class="form-label") }}
-                {{ form.work(class="form-control") }}
-                {% if form.work.errors %}
-                    <div class="text-danger">
-                        {% for error in form.work.errors %}
-                            <p>{{ error }}</p>
-                        {% endfor %}
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-id-card"></i>
+                        <h3>Basic Information</h3>
                     </div>
-                {% endif %}
-            </div>
-            
-            <div class="mb-3">
-                {{ form.bio.label(class="form-label") }}
-                {{ form.bio(class="form-control") }}
-                {% if form.bio.errors %}
-                    <div class="text-danger">
-                        {% for error in form.bio.errors %}
-                            <p>{{ error }}</p>
-                        {% endfor %}
+                    <div class="form-group">
+                        {{ form.username.label(class="form-label") }}
+                        <div class="input-with-icon">
+                            <i class="fas fa-user"></i>
+                            {{ form.username(class="form-control", id="username_input") }}
+                        </div>
+                        {% if form.username.errors %}
+                            <div class="error-message">
+                                {% for error in form.username.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
-                {% endif %}
-            </div>
 
-            {{ form.submit(class="btn btn-primary btn-block mt-3") }}
-        </form>
+                    <div class="form-group">
+                        {{ form.age.label(class="form-label") }}
+                        <div class="input-with-icon">
+                            <i class="fas fa-birthday-cake"></i>
+                            {{ form.age(class="form-control", id="age_input") }}
+                        </div>
+                        {% if form.age.errors %}
+                            <div class="error-message">
+                                {% for error in form.age.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.work.label(class="form-label") }}
+                        <div class="input-with-icon">
+                            <i class="fas fa-briefcase"></i>
+                            {{ form.work(class="form-control", id="work_input") }}
+                        </div>
+                        {% if form.work.errors %}
+                            <div class="error-message">
+                                {% for error in form.work.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-quote-right"></i>
+                        <h3>Bio</h3>
+                    </div>
+                    <div class="form-group">
+                        <p class="bio-description">Tell others about yourself</p>
+                        {{ form.bio(class="form-control bio-textarea", rows="4", id="bio_input") }}
+                        {% if form.bio.errors %}
+                            <div class="error-message">
+                                {% for error in form.bio.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="char-counter">
+                            <span id="char-count">0</span>/500
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{{ url_for('views.profile', username=current_user.username) }}" class="btn-cancel">Cancel</a>
+                    {{ form.submit(class="btn-save") }}
+                </div>
+            </form>
+        </div>
     </div>
 </div>
-{% endblock %}
 
 <style>
-    /* Styling for the update profile page */
-    .container {
-        max-width: 800px;
-        margin: 0 auto;
+    /* Enhanced styling for update profile page */
+    :root {
+        --primary-color: #1877f2;
+        --secondary-color: #42b72a;
+        --bg-color: #f0f2f5;
+        --card-bg: #ffffff;
+        --text-color: #1c1e21;
+        --secondary-text: #65676b;
+        --border-color: #dddfe2;
+        --hover-bg: #f2f2f2;
+        --error-color: #fa3e3e;
+        --success-color: #42b72a;
     }
-
-    .card {
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    
+    body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-
-    h3 {
-        color: #2c3e50;
+    
+    .update-profile-container {
+        max-width: 900px;
+        margin: 30px auto;
+        padding: 0 15px;
+    }
+    
+    .page-header {
+        margin-bottom: 20px;
+    }
+    
+    .page-header h1 {
+        font-size: 24px;
         font-weight: bold;
+        color: var(--text-color);
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
-
-    .form-label {
+    
+    .page-header h1 i {
+        color: var(--primary-color);
+    }
+    
+    .profile-edit-card {
+        background-color: var(--card-bg);
+        border-radius: 8px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        overflow: hidden;
+    }
+    
+    /* Profile Preview */
+    .profile-preview {
+        background-color: #f7f8fa;
+        border-right: 1px solid var(--border-color);
+        padding: 0;
+    }
+    
+    .preview-header {
+        padding: 15px;
+        border-bottom: 1px solid var(--border-color);
+        background-color: #f0f2f5;
+    }
+    
+    .preview-header h3 {
+        margin: 0;
+        font-size: 16px;
+        color: var(--secondary-text);
+        font-weight: 600;
+    }
+    
+    .preview-content {
+        padding: 20px 15px;
+    }
+    
+    .preview-image-container {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 20px;
+        position: relative;
+    }
+    
+    .preview-image {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid white;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .preview-name {
+        font-size: 20px;
         font-weight: bold;
-        color: #34495e;
+        text-align: center;
+        margin-bottom: 15px;
     }
-
-    .form-control {
-        border-radius: 5px;
-        border: 1px solid #ccc;
-        padding: 10px;
+    
+    .preview-details {
+        margin-bottom: 15px;
+    }
+    
+    .preview-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        color: var(--secondary-text);
         font-size: 14px;
     }
-
+    
+    .preview-item i {
+        color: var(--primary-color);
+        width: 16px;
+    }
+    
+    .preview-bio {
+        position: relative;
+        padding-left: 20px;
+        font-size: 14px;
+        color: var(--secondary-text);
+        font-style: italic;
+    }
+    
+    .preview-bio i {
+        position: absolute;
+        left: 0;
+        top: 2px;
+        color: #999;
+    }
+    
+    /* Form Styling */
+    .form-container {
+        padding: 25px;
+    }
+    
+    .form-section {
+        margin-bottom: 25px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 25px;
+    }
+    
+    .form-section:last-child {
+        border-bottom: none;
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .section-header i {
+        color: var(--primary-color);
+        font-size: 18px;
+    }
+    
+    .section-header h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-color);
+    }
+    
+    .input-with-icon {
+        position: relative;
+    }
+    
+    .input-with-icon i {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        color: var(--secondary-text);
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 10px 12px 10px 35px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        font-size: 15px;
+        color: var(--text-color);
+        transition: all 0.2s ease;
+    }
+    
     .form-control:focus {
-        border-color: #3498db;
-        box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+        outline: none;
     }
-
-    .btn-primary {
-        background-color: #3498db;
-        border: none;
-        border-radius: 5px;
-        padding: 10px 20px;
-        font-size: 16px;
+    
+    .bio-textarea {
+        padding: 12px;
+        resize: vertical;
+        min-height: 80px;
     }
-
-    .btn-primary:hover {
-        background-color: #2980b9;
+    
+    .bio-description {
+        font-size: 14px;
+        color: var(--secondary-text);
+        margin-bottom: 8px;
+    }
+    
+    .char-counter {
+        text-align: right;
+        font-size: 12px;
+        color: var(--secondary-text);
+        margin-top: 5px;
+    }
+    
+    /* Custom File Upload */
+    .custom-file-upload {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .file-preview {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2px solid var(--border-color);
+    }
+    
+    .file-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .file-input-container {
+        flex-grow: 1;
+    }
+    
+    .file-input {
+        position: absolute;
+        left: -9999px;
+    }
+    
+    .file-label {
+        display: inline-block;
+        padding: 8px 16px;
+        background-color: var(--primary-color);
+        color: white;
+        border-radius: 6px;
         cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        transition: background-color 0.2s ease;
     }
-
-    .mt-3 {
-        margin-top: 15px;
+    
+    .file-label:hover {
+        background-color: #166fe5;
     }
-
-    /* Error message styling */
-    .text-danger {
-        color: #e74c3c;
-        font-size: 0.875rem;
+    
+    .file-info {
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--secondary-text);
     }
-
-    .form-control:focus {
-        border-color: #3498db;
-        box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+    
+    /* Error Messages */
+    .error-message {
+        color: var(--error-color);
+        font-size: 13px;
+        margin-top: 5px;
     }
-
-    .btn-primary {
-        background-color: #3498db;
-        border: none;
-        border-radius: 5px;
-        padding: 10px 20px;
-        font-size: 16px;
+    
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+        margin-top: 20px;
     }
-
-    .btn-primary:hover {
-        background-color: #2980b9;
+    
+    .btn-cancel, .btn-save {
+        padding: 8px 20px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 15px;
         cursor: pointer;
+        border: none;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
-
+    
+    .btn-cancel {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+    }
+    
+    .btn-cancel:hover {
+        background-color: #e4e6e9;
+    }
+    
+    .btn-save {
+        background-color: var(--secondary-color);
+        color: white;
+    }
+    
+    .btn-save:hover {
+        background-color: #36a420;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .profile-edit-card {
+            grid-template-columns: 1fr;
+        }
+        
+        .profile-preview {
+            border-right: none;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .preview-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .custom-file-upload {
+            flex-direction: column;
+            align-items: center;
+        }
+    }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set initial character count
+        const bioTextarea = document.getElementById('bio_input');
+        const charCount = document.getElementById('char-count');
+        
+        if (bioTextarea && charCount) {
+            charCount.textContent = bioTextarea.value.length;
+            
+            // Update character count as user types
+            bioTextarea.addEventListener('input', function() {
+                charCount.textContent = this.value.length;
+                
+                // Update preview bio
+                document.getElementById('preview-bio').textContent = this.value;
+                
+                // Change color when approaching limit
+                if (this.value.length > 450) {
+                    charCount.style.color = '#e65c00';
+                } else {
+                    charCount.style.color = '';
+                }
+            });
+        }
+        
+        // Live update profile preview as user inputs data
+        const usernameInput = document.getElementById('username_input');
+        const ageInput = document.getElementById('age_input');
+        const workInput = document.getElementById('work_input');
+        
+        if (usernameInput) {
+            usernameInput.addEventListener('input', function() {
+                document.getElementById('preview-username').textContent = this.value;
+            });
+        }
+        
+        if (ageInput) {
+            ageInput.addEventListener('input', function() {
+                document.getElementById('preview-age').textContent = this.value;
+            });
+        }
+        
+        if (workInput) {
+            workInput.addEventListener('input', function() {
+                document.getElementById('preview-work').textContent = this.value;
+            });
+        }
+        
+        // Preview profile picture before upload
+        const profilePictureInput = document.getElementById('profile_picture_input');
+        
+        if (profilePictureInput) {
+            profilePictureInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        document.getElementById('file-preview-image').src = e.target.result;
+                        document.getElementById('preview-image').src = e.target.result;
+                    }
+                    
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+        }
+        
+        // Form validation
+        const profileForm = document.getElementById('profile-form');
+        
+        if (profileForm) {
+            profileForm.addEventListener('submit', function(event) {
+                let valid = true;
+                
+                // Basic validation example - can be expanded
+                if (bioTextarea && bioTextarea.value.length > 500) {
+                    event.preventDefault();
+                    valid = false;
+                    
+                    // Create error message if it doesn't exist
+                    let errorElem = bioTextarea.parentNode.querySelector('.error-message');
+                    if (!errorElem) {
+                        errorElem = document.createElement('div');
+                        errorElem.className = 'error-message';
+                        bioTextarea.parentNode.appendChild(errorElem);
+                    }
+                    
+                    errorElem.innerHTML = '<p>Bio cannot exceed 500 characters</p>';
+                }
+                
+                // Could add more validation here
+                
+                return valid;
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Create Reel Floating Button -->
+<div class="fixed bottom-6 right-6 z-50">
+    <a href="{{ url_for('views.create_reel') }}" class="flex items-center justify-center w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+        <i class="bi bi-plus-lg text-white text-2xl"></i>
+    </a>
+</div>
+
+<div class="reels-container h-screen bg-black">
+    <!-- Reels Header -->
+    <div class="fixed top-0 left-0 right-0 z-40 bg-gradient-to-b from-black/70 to-transparent p-4">
+        <div class="flex items-center justify-between max-w-lg mx-auto">
+            <h1 class="text-2xl font-bold text-white">Reels</h1>
+            <div class="flex space-x-4">
+                <button class="text-white">
+                    <i class="bi bi-search text-xl"></i>
+                </button>
+                <button class="text-white">
+                    <i class="bi bi-camera text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reels Content -->
+    <div class="snap-y snap-mandatory h-screen overflow-y-scroll" id="reels-scroll-container">
+        {% for reel in reels %}
+        <div class="snap-start h-screen w-full relative flex items-center justify-center bg-black" data-reel-id="{{ reel.id }}">
+            <!-- Video -->
+            <video 
+                src="{{ url_for('static', filename=reel.media_path) }}" 
+                class="h-full w-full object-contain"
+                loop
+                onclick="togglePlayPause(this)"
+                poster="{{ url_for('static', filename=reel.media_path or 'default.jpg') }}">
+            </video>
+
+            <!-- Gradient Overlay -->
+            <div class="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/30 pointer-events-none"></div>
+
+            <!-- Action Bar (Right Side) -->
+            <div class="absolute right-4 bottom-32 flex flex-col items-center space-y-6">
+                <!-- Like Button -->
+                <button class="flex flex-col items-center" onclick="toggleLike(this)" data-reel-id="{{ reel.id }}">
+                    <div class="w-10 h-10 rounded-full bg-black/30 flex items-center justify-center mb-1">
+                        <i class="bi {% if current_user in reel.likes|map(attribute='user') %}bi-heart-fill text-red-500{% else %}bi-heart text-white{% endif %} text-xl"></i>
+                    </div>
+                    <span class="text-xs text-white font-medium likes-count">{{ reel.likes|length }}</span>
+                </button>
+
+                <!-- Comment Button -->
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-black/30 flex items-center justify-center mb-1">
+                        <i class="bi bi-chat text-white text-xl"></i>
+                    </div>
+                    <span class="text-xs text-white font-medium">{{ reel.comments|length }}</span>
+                </div>
+
+                <!-- Share Button -->
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-black/30 flex items-center justify-center mb-1">
+                        <i class="bi bi-share text-white text-xl"></i>
+                    </div>
+                    <span class="text-xs text-white font-medium">Share</span>
+                </div>
+            </div>
+
+            <!-- User Info & Caption (Bottom) -->
+            <div class="absolute left-4 right-16 bottom-6 text-white">
+                <!-- User Info -->
+                <div class="flex items-center mb-3">
+                    <img src="{{ url_for('static', filename='profile_pics/' + reel.user.profile_picture) }}" 
+                        class="w-10 h-10 rounded-full border-2 border-white" 
+                        alt="{{ reel.user.username }}">
+                    <div class="ml-2">
+                        <h3 class="font-bold">{{ reel.user.username }}</h3>
+                        <p class="text-xs opacity-80">{{ reel.timestamp.strftime('%b %d') }}</p>
+                    </div>
+                    <button class="ml-3 px-2 py-1 text-xs font-bold rounded-md border border-white">Follow</button>
+                </div>
+                
+                <!-- Caption -->
+                <p class="text-sm mb-1">{{ reel.content }}</p>
+                
+                <!-- Audio Info -->
+                <div class="flex items-center">
+                    <i class="bi bi-music-note text-sm mr-1"></i>
+                    <p class="text-xs">Original Audio</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        {% if not reels %}
+        <div class="h-screen w-full flex flex-col items-center justify-center bg-black text-white">
+            <i class="bi bi-film text-5xl mb-4"></i>
+            <h2 class="text-2xl font-bold mb-2">No Reels Yet</h2>
+            <p class="text-gray-400 text-center max-w-xs">Be the first to create a reel and start sharing videos!</p>
+            <a href="{{ url_for('views.create_reel') }}" class="mt-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold py-3 px-6 rounded-full">
+                Create Your First Reel
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Auto-play video when in view
+document.addEventListener('DOMContentLoaded', function() {
+    const videos = document.querySelectorAll('video');
+    const container = document.getElementById('reels-scroll-container');
+    
+    // Play the first video on page load
+    if (videos.length > 0) {
+        videos[0].play();
+    }
+    
+    // Handle scroll to play/pause videos
+    container.addEventListener('scroll', function() {
+        const scrollPosition = container.scrollTop;
+        const windowHeight = window.innerHeight;
+        
+        videos.forEach((video) => {
+            const rect = video.getBoundingClientRect();
+            const inView = (
+                rect.top >= -windowHeight/2 && 
+                rect.top <= windowHeight/2
+            );
+            
+            if (inView) {
+                video.play();
+            } else {
+                video.pause();
+            }
+        });
+    });
+});
+
+// Toggle play/pause on click
+function togglePlayPause(video) {
+    if (video.paused) {
+        video.play();
+    } else {
+        video.pause();
+    }
+}
+
+// Handle like functionality
+function toggleLike(button) {
+    const reelId = button.getAttribute('data-reel-id');
+    const likesCountSpan = button.querySelector('.likes-count');
+    const heartIcon = button.querySelector('i');
+
+    fetch(`/reels/${reelId}/like`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        likesCountSpan.textContent = data.likes_count;
+        
+        if (data.liked) {
+            heartIcon.classList.remove('bi-heart', 'text-white');
+            heartIcon.classList.add('bi-heart-fill', 'text-red-500');
+        } else {
+            heartIcon.classList.add('bi-heart', 'text-white');
+            heartIcon.classList.remove('bi-heart-fill', 'text-red-500');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+</script>
+
+<style>
+/* Hide scrollbar for Chrome, Safari and Opera */
+#reels-scroll-container::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+#reels-scroll-container {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* Ensure the body takes full height */
+body {
+    height: 100vh;
+    overflow: hidden;
+}
+</style>
+{% endblock %}

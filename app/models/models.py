@@ -75,6 +75,11 @@ class Post(db.Model):
     comments = db.relationship('Comment', backref='post', lazy=True)
     views = db.Column(db.Integer, default=0)
 
+    price = db.Column(db.Float, nullable=True)
+    is_purchasable = db.Column(db.Boolean, default=False)
+    
+    
+    
     def get_media_url(self):
         return self.media_path if self.media_path else 'default.jpg'
 
@@ -100,5 +105,3 @@ class Comment(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
-    user = db.relationship('User', backref='comments')
-

@@ -22,6 +22,10 @@
               <div class="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center text-white text-xl mr-3">🚪</div>
               <span class="font-medium">Logout</span>
             </a>
+            <a href="{{ url_for('views.reels') }}" class="flex items-center p-3 rounded-lg hover:bg-blue-50 transition">
+              <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-xl mr-3">🎥</div>
+              <span class="font-medium">Reels</span>
+          </a>
           </div>
         </div>
       </div>
@@ -170,6 +174,20 @@
             <!-- Post Caption -->
             <div class="px-4 pb-3">
               <p>{{ post.caption }}</p>
+
+
+
+              <div class="px-4 pb-3">
+                <p>{{ post.caption }}</p>
+                
+                {% if post.is_purchasable %}
+                <div class="mt-2">
+                    <button class="btn-primary" onclick="buyItem({{ post.id }})">
+                        Buy for ${{ post.price }}
+                    </button>
+                </div>
+                {% endif %}
+              </div>
             </div>
             
             <!-- Post Media Content -->

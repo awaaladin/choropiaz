@@ -1,23 +1,459 @@
 {% extends 'base.html' %}
-{% block title %}Profile{% endblock %}
+{% block title %}{{ user.username }}'s Profile{% endblock %}
 {% block content %}
-<div class="container mt-4">
-    <h3>Your Profile</h3>
-
-    <div class="card mb-4 p-4 shadow-lg rounded-lg">
-        <div class="row">
-            <div class="col-md-4">
-                <img src="{{ url_for('static', filename='profile_pics/' + current_user.profile_picture) }}" alt="Profile Picture" class="rounded-circle" style="width: 150px; height: 150px;">
+<div class="profile-container">
+    <!-- Cover Photo Area -->
+    <div class="cover-photo">
+        <div class="profile-picture-container">
+            <img src="{{ url_for('static', filename='profile_pics/' + user.profile_picture) }}" alt="Profile Picture" class="profile-picture">
+            {% if current_user.id == user.id %}
+            <div class="edit-overlay">
+                <form id="profilePicForm" action="{{ url_for('views.update_profile_picture') }}" method="POST" enctype="multipart/form-data">
+                    <input type="file" name="profile_picture" id="profilePicInput" style="display: none;">
+                    <label for="profilePicInput" class="edit-icon">
+                        <i class="fas fa-camera"></i>
+                    </label>
+                </form>
             </div>
-            <div class="col-md-8">
-                <h4>{{ current_user.username }}</h4>
-                <p><strong>Age:</strong> {{ current_user.age }}</p>
-                <p><strong>Work:</strong> {{ current_user.work }}</p>
-                <p><strong>Bio:</strong> {{ current_user.bio }}</p>
-            </div>
+            {% endif %}
         </div>
     </div>
 
-    <a href="{{ url_for('views.update_profile') }}" class="btn btn-primary mt-3">Update Profile</a>
+    <!-- Profile Info Section -->
+    <div class="profile-header">
+        <div class="profile-name-section">
+            <h1>{{ user.username }}</h1>
+            {% if current_user.id != user.id %}
+                <div class="action-buttons">
+                    {% if not current_user.is_following(user) %}
+                        <form method="POST" action="{{ url_for('views.follow_user', user_id=user.id) }}">
+                            <button type="submit" class="btn-follow">
+                                <i class="fas fa-user-plus"></i> Follow
+                            </button>
+                        </form>
+                    {% else %}
+                        <form method="POST" action="{{ url_for('views.unfollow_user', user_id=user.id) }}">
+                            <button type="submit" class="btn-following">
+                                <i class="fas fa-check"></i> Following
+                            </button>
+                        </form>
+                    {% endif %}
+                    <button class="btn-message">
+                        <i class="fas fa-comment"></i> Message
+                    </button>
+                </div>
+            {% else %}
+                <a href="{{ url_for('views.update_profile') }}" class="btn-edit-profile">
+                    <i class="fas fa-edit"></i> Edit Profile
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="profile-content">
+        <!-- Left Sidebar - About -->
+        <div class="profile-about">
+            <div class="about-card">
+                <h3><i class="fas fa-info-circle"></i> About</h3>
+                <div class="about-item">
+                    <i class="fas fa-birthday-cake"></i>
+                    <span>{{ user.age }} years old</span>
+                </div>
+                <div class="about-item">
+                    <i class="fas fa-briefcase"></i>
+                    <span>Works at {{ user.work }}</span>
+                </div>
+                <div class="about-item bio">
+                    <i class="fas fa-quote-left"></i>
+                    <span>{{ user.bio }}</span>
+                </div>
+            </div>
+            
+            <div class="friends-card">
+                <h3><i class="fas fa-users"></i> Friends</h3>
+                <div class="friends-grid">
+                    <!-- This would be populated from your database -->
+                    <div class="friend-placeholder"></div>
+                    <div class="friend-placeholder"></div>
+                    <div class="friend-placeholder"></div>
+                    <div class="friend-placeholder"></div>
+                    <div class="friend-placeholder"></div>
+                    <div class="friend-placeholder"></div>
+                </div>
+                <a href="#" class="see-all">See All Friends</a>
+            </div>
+            
+            <div class="photos-card">
+                <h3><i class="fas fa-images"></i> Photos</h3>
+                <div class="photos-grid">
+                    <!-- This would be populated from your database -->
+                    <div class="photo-placeholder"></div>
+                    <div class="photo-placeholder"></div>
+                    <div class="photo-placeholder"></div>
+                    <div class="photo-placeholder"></div>
+                    <div class="photo-placeholder"></div>
+                    <div class="photo-placeholder"></div>
+                </div>
+                <a href="#" class="see-all">See All Photos</a>
+            </div>
+        </div>
+        
+        <!-- Right Area - Posts -->
+        <div class="profile-posts">
+            {% if current_user.id == user.id %}
+            <div class="create-post">
+                <img src="{{ url_for('static', filename='profile_pics/' + user.profile_picture) }}" alt="Profile Picture" class="post-profile-pic">
+                <div class="post-input">
+                    <input type="text" placeholder="What's on your mind, {{ user.username }}?" readonly>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="posts-container">
+                <!-- This is where posts would go -->
+                <div class="empty-posts">
+                    <i class="fas fa-newspaper fa-3x"></i>
+                    <p>No posts to show yet.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+    /* Facebook-inspired styling with unique touches */
+    :root {
+        --primary-color: #1877f2;
+        --secondary-color: #42b72a;
+        --bg-color: #f0f2f5;
+        --card-bg: #ffffff;
+        --text-color: #1c1e21;
+        --secondary-text: #65676b;
+        --border-color: #dddfe2;
+        --hover-bg: #f2f2f2;
+    }
+    
+    body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .profile-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    /* Cover Photo Area */
+    .cover-photo {
+        height: 200px;
+        background: linear-gradient(135deg, #3b5998, #8b9dc3);
+        border-radius: 8px 8px 0 0;
+        position: relative;
+        margin-bottom: 70px;
+    }
+    
+    .profile-picture-container {
+        position: absolute;
+        bottom: -50px;
+        left: 20px;
+    }
+    
+    .profile-picture {
+        width: 168px;
+        height: 168px;
+        border-radius: 50%;
+        border: 4px solid white;
+        object-fit: cover;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        transition: filter 0.3s ease;
+    }
+    
+    .edit-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s ease, background 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .profile-picture-container:hover .edit-overlay {
+        opacity: 1;
+        background: rgba(0, 0, 0, 0.5);
+    }
+    
+    .profile-picture-container:hover .profile-picture {
+        filter: brightness(0.8);
+    }
+    
+    .edit-icon {
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+    }
+    
+    /* Profile Header */
+    .profile-header {
+        padding: 0 20px;
+        margin-bottom: 20px;
+    }
+    
+    .profile-name-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 15px;
+    }
+    
+    .profile-name-section h1 {
+        font-size: 32px;
+        font-weight: bold;
+        margin: 0;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-follow, .btn-following, .btn-message, .btn-edit-profile {
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-follow {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    
+    .btn-following {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+    }
+    
+    .btn-message {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+    }
+    
+    .btn-edit-profile {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        text-decoration: none;
+    }
+    
+    .btn-follow:hover, .btn-edit-profile:hover {
+        background-color: #166fe5;
+    }
+    
+    .btn-following:hover, .btn-message:hover {
+        background-color: var(--hover-bg);
+    }
+    
+    /* Main Content Area */
+    .profile-content {
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        gap: 20px;
+        padding: 0 20px;
+    }
+    
+    /* About Section */
+    .profile-about {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .about-card, .friends-card, .photos-card {
+        background-color: var(--card-bg);
+        border-radius: 8px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+    }
+    
+    .about-card h3, .friends-card h3, .photos-card h3 {
+        font-size: 20px;
+        font-weight: 600;
+        margin-top: 0;
+        margin-bottom: 15px;
+        color: var(--text-color);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .about-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        font-size: 15px;
+        color: var(--secondary-text);
+    }
+    
+    .about-item i {
+        width: 20px;
+        color: var(--primary-color);
+        margin-right: 10px;
+    }
+    
+    .about-item.bio {
+        display: block;
+        padding-left: 30px;
+        position: relative;
+    }
+    
+    .about-item.bio i {
+        position: absolute;
+        left: 0;
+        top: 2px;
+    }
+    
+    /* Friends Grid */
+    .friends-grid, .photos-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+    
+    .friend-placeholder, .photo-placeholder {
+        width: 100%;
+        padding-top: 100%; /* Aspect ratio 1:1 */
+        background-color: #e4e6eb;
+        border-radius: 8px;
+    }
+    
+    .see-all {
+        display: block;
+        text-align: center;
+        color: var(--primary-color);
+        text-decoration: none;
+        padding: 8px;
+        font-weight: 600;
+        font-size: 15px;
+    }
+    
+    .see-all:hover {
+        background-color: var(--hover-bg);
+        border-radius: 6px;
+    }
+    
+    /* Posts Section */
+    .profile-posts {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .create-post {
+        background-color: var(--card-bg);
+        border-radius: 8px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .post-profile-pic {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .post-input {
+        flex-grow: 1;
+    }
+    
+    .post-input input {
+        width: 100%;
+        border: none;
+        background-color: var(--hover-bg);
+        border-radius: 20px;
+        padding: 10px 15px;
+        font-size: 15px;
+        color: var(--secondary-text);
+    }
+    
+    .post-input input:focus {
+        outline: none;
+    }
+    
+    .empty-posts {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 0;
+        color: var(--secondary-text);
+        background-color: var(--card-bg);
+        border-radius: 8px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    
+    .empty-posts i {
+        margin-bottom: 15px;
+        color: #BCC0C4;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .profile-content {
+            grid-template-columns: 1fr;
+        }
+        
+        .cover-photo {
+            margin-bottom: 100px;
+        }
+        
+        .profile-name-section {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+            padding-top: 60px;
+        }
+        
+        .action-buttons {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<script>
+    // Script to handle profile picture upload on click
+    document.addEventListener('DOMContentLoaded', function() {
+        const profilePicInput = document.getElementById('profilePicInput');
+        const profilePicForm = document.getElementById('profilePicForm');
+        
+        if (profilePicInput) {
+            profilePicInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    // Submit the form automatically when a file is selected
+                    profilePicForm.submit();
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

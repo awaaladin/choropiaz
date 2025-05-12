@@ -26,6 +26,22 @@
             }
         }
     </script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script>
+    // Apply saved theme immediately to prevent flash of wrong theme
+    (function() {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        
+        if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        } else if (savedTheme === 'system') {
+            const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.setAttribute('data-theme', prefersDarkScheme ? 'dark' : 'light');
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+        }
+    })();
+</script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="bg-choropia-gray min-h-screen">
@@ -50,14 +66,19 @@
                                 <i class="bi bi-house-door text-2xl"></i>
                             </div>
                         </a>
-                        <a href="{{ url_for('views.feed') }}" class="nav-icon-link group">
+                        <a href="{{ url_for('views.reels') }}" class="nav-icon-link group">
                             <div class="p-2 mx-2 rounded-lg group-hover:bg-choropia-gray">
-                                <i class="bi bi-collection text-2xl"></i>
+                                <i class="bi bi-camera-reels text-2xl"></i>
                             </div>
                         </a>
                         <a href="#" class="nav-icon-link group">
                             <div class="p-2 mx-2 rounded-lg group-hover:bg-choropia-gray">
                                 <i class="bi bi-shop text-2xl"></i>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('views.profile') }}" class="nav-icon-link group">
+                            <div class="p-2 mx-2 rounded-lg group-hover:bg-choropia-gray">
+                                <i class="bi bi-person-circle text-2xl"></i>
                             </div>
                         </a>
                     {% endif %}
@@ -113,8 +134,8 @@
                 <a href="{{ url_for('views.home') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
                     <i class="bi bi-house-door text-xl"></i>
                 </a>
-                <a href="{{ url_for('views.feed') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
-                    <i class="bi bi-collection text-xl"></i>
+                <a href="{{ url_for('views.reels') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
+                    <i class="bi bi-camera-reels text-xl"></i>
                 </a>
                 <a href="#" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
                     <i class="bi bi-shop text-xl"></i>

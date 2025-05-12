@@ -479,3 +479,569 @@ nav.navbar {
 }
 
 
+/* Global dark mode styles - Facebook-inspired */
+
+:root {
+  /* Light mode variables - Facebook light mode */
+  --primary-color: #1877f2; /* Facebook blue */
+  --secondary-color: #42b72a; /* Facebook green */
+  --bg-color: #f0f2f5; /* Light gray background */
+  --text-color: #050505; /* Near black text */
+  --secondary-text-color: #65676b; /* Gray text for secondary content */
+  --border-color: #dddfe2; /* Light border color */
+  --sidebar-bg: #ffffff; /* White sidebar */
+  --container-bg: #ffffff; /* White container background */
+  --active-bg: #e7f3ff; /* Light blue active state */
+  --hover-bg: #f2f2f2; /* Light gray hover state */
+  --shadow-color: rgba(0, 0, 0, 0.1); /* Light shadow */
+  --header-bg: #ffffff; /* White header */
+  --footer-bg: #ffffff; /* White footer */
+  
+  /* Form elements */
+  --form-control-bg: #ffffff;
+  --form-control-border: #dddfe2;
+  --input-bg: #f0f2f5; /* Light gray input background */
+  --input-text: #050505;
+  
+  /* Interactive elements */
+  --link-color: #1877f2;
+  --link-hover-color: #166fe5;
+  --button-primary-bg: #1877f2; /* Blue button */
+  --button-primary-text: #ffffff;
+  --button-secondary-bg: #e4e6eb; /* Gray button */
+  --button-secondary-text: #050505;
+  
+  /* Cards and content blocks */
+  --card-bg: #ffffff;
+  --card-header-bg: #ffffff;
+  --card-border: #dddfe2;
+  
+  /* Notification colors */
+  --success-color: #42b72a; /* Green */
+  --danger-color: #fa3e3e; /* Red */
+  --warning-color: #f7b928; /* Yellow */
+  --info-color: #1877f2; /* Blue */
+  
+  /* Facebook-specific elements */
+  --reaction-bg: #f0f2f5;
+  --divider-color: #ced0d4;
+  --tooltip-bg: #3e4042;
+  --tooltip-text: #e4e6eb;
+}
+
+/* Dark mode variables - Facebook dark mode */
+[data-theme="dark"] {
+  /* Main colors */
+  --primary-color: #2d88ff; /* Facebook blue in dark mode */
+  --secondary-color: #45bd45; /* Adjusted green */
+  --bg-color: #18191a; /* Very dark gray background */
+  --text-color: #e4e6eb; /* Off-white text */
+  --secondary-text-color: #b0b3b8; /* Gray text for secondary content */
+  --border-color: #3e4042; /* Dark border color */
+  --sidebar-bg: #242526; /* Dark sidebar */
+  --container-bg: #242526; /* Dark container background */
+  --active-bg: #3a3b3c; /* Dark active state */
+  --hover-bg: #303031; /* Slightly lighter hover state */
+  --shadow-color: rgba(0, 0, 0, 0.5); /* Darker shadow */
+  --header-bg: #242526; /* Dark header */
+  --footer-bg: #242526; /* Dark footer */
+  
+  /* Form elements */
+  --form-control-bg: #3a3b3c;
+  --form-control-border: #3e4042;
+  --input-bg: #3a3b3c; /* Dark input background */
+  --input-text: #e4e6eb;
+  
+  /* Interactive elements */
+  --link-color: #2d88ff;
+  --link-hover-color: #4599ff;
+  --button-primary-bg: #2d88ff; /* Blue button */
+  --button-primary-text: #ffffff;
+  --button-secondary-bg: #3a3b3c; /* Dark button */
+  --button-secondary-text: #e4e6eb;
+  
+  /* Cards and content blocks */
+  --card-bg: #242526;
+  --card-header-bg: #242526;
+  --card-border: #3e4042;
+  
+  /* Notification colors */
+  --success-color: #45bd45; /* Green */
+  --danger-color: #f5695c; /* Red */
+  --warning-color: #f7cb45; /* Yellow */
+  --info-color: #2d88ff; /* Blue */
+  
+  /* Facebook-specific elements */
+  --reaction-bg: #3a3b3c;
+  --divider-color: #3e4042;
+  --tooltip-bg: #3e4042;
+  --tooltip-text: #e4e6eb;
+}
+
+/* Apply transitions for smooth theme switching */
+body, a, button, input, select, textarea {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Base Styles */
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: Helvetica, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  line-height: 1.34;
+}
+
+a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+p, span {
+  margin: 0 0 10px;
+}
+
+.secondary-text {
+  color: var(--secondary-text-color);
+}
+
+/* Layout */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -15px;
+}
+
+/* Form Elements */
+input, select, textarea, .form-control {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border: 1px solid var(--form-control-border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 15px;
+  transition: border-color 0.2s;
+}
+
+input:focus, select:focus, textarea:focus, .form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(45, 136, 255, 0.2);
+}
+
+/* Buttons */
+.btn {
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s, filter 0.2s;
+}
+
+.btn-primary {
+  background-color: var(--button-primary-bg);
+  color: var(--button-primary-text);
+}
+
+.btn-primary:hover {
+  filter: brightness(95%);
+}
+
+.btn-secondary {
+  background-color: var(--button-secondary-bg);
+  color: var(--button-secondary-text);
+}
+
+.btn-secondary:hover {
+  background-color: var(--hover-bg);
+}
+
+/* Common UI Elements */
+
+/* Header/Navbar */
+header, .navbar {
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 5px var(--shadow-color);
+}
+
+.navbar-brand {
+  margin-right: 8px;
+  padding: 0 10px;
+}
+
+.navbar-brand img {
+  height: 40px;
+}
+
+.search-bar {
+  background-color: var(--input-bg);
+  border-radius: 50px;
+  margin-right: 8px;
+  padding: 0 16px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.search-bar input {
+  background: transparent;
+  border: none;
+  flex-grow: 1;
+  height: 100%;
+  padding: 0 8px;
+}
+
+.search-bar input:focus {
+  box-shadow: none;
+}
+
+.search-bar i {
+  color: var(--secondary-text-color);
+}
+
+.navbar-nav {
+  display: flex;
+  margin-left: auto;
+  padding: 0;
+  list-style: none;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+}
+
+.nav-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--button-secondary-bg);
+  color: var(--text-color);
+  font-size: 18px;
+  transition: background-color 0.2s;
+}
+
+.nav-icon:hover {
+  background-color: var(--hover-bg);
+}
+
+.nav-link {
+  color: var(--text-color);
+  text-decoration: none;
+  font-weight: 600;
+  position: relative;
+}
+
+.nav-link.active {
+  color: var(--primary-color);
+  border-bottom: 3px solid var(--primary-color);
+}
+
+/* Cards */
+.card {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px var(--shadow-color);
+  margin-bottom: 16px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--card-border);
+}
+
+.card-header {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.card-body {
+  padding: 16px;
+}
+
+.card-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Avatar */
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 10px;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  background-color: var(--divider-color);
+  margin: 8px 0;
+}
+
+/* Reaction buttons */
+.reactions {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.reaction-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 8px;
+  background-color: transparent;
+  color: var(--secondary-text-color);
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.reaction-btn:hover {
+  background-color: var(--reaction-bg);
+}
+
+/* Settings Page Specific Styles */
+.settings-container {
+  display: flex;
+  max-width: 1200px;
+  margin: 20px auto;
+  background-color: var(--container-bg);
+  box-shadow: 0 1px 2px var(--shadow-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.settings-navigation {
+  width: 360px;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--border-color);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.settings-header h1 {
+  color: var(--text-color);
+  font-size: 24px;
+  margin: 0;
+}
+
+.settings-menu ul {
+  list-style: none;
+  padding: 8px 0;
+  margin: 0;
+}
+
+.settings-menu li {
+  margin: 0;
+}
+
+.settings-menu a {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  color: var(--text-color);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.settings-menu a:hover {
+  background-color: var(--hover-bg);
+  text-decoration: none;
+}
+
+.settings-menu a i {
+  margin-right: 12px;
+  font-size: 20px;
+  width: 24px;
+  text-align: center;
+  color: var(--secondary-text-color);
+}
+
+.settings-menu li.active a {
+  font-weight: 600;
+}
+
+.settings-menu li.active a i {
+  color: var(--primary-color);
+}
+
+.settings-content {
+  flex-grow: 1;
+  padding: 24px;
+}
+
+.section-header {
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.section-header h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.section-header p {
+  margin: 0;
+  color: var(--secondary-text-color);
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.profile-picture-upload {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-picture-upload img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+}
+
+.profile-picture-upload input[type="file"] {
+  display: none;
+}
+
+.upload-btn {
+  background-color: var(--button-primary-bg);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: filter 0.2s;
+}
+
+.upload-btn:hover {
+  filter: brightness(95%);
+  text-decoration: none;
+}
+
+.settings-footer {
+  margin-top: auto;
+  padding: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.btn-help {
+  width: 100%;
+  background-color: var(--button-secondary-bg);
+  color: var(--text-color);
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-help:hover {
+  background-color: var(--hover-bg);
+}
+
+.btn-help i {
+  margin-right: 8px;
+}
+
+/* Theme switcher styles */
+.theme-switcher {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.theme-switcher input[type="radio"] {
+  display: none;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background-color: var(--input-bg);
+  border: 1px solid var(--form-control-border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.theme-option:hover {
+  background-color: var(--hover-bg);
+}
+
+.theme-option i {
+  font-size: 18px;
+}
+
+input[type="radio"]:checked + .theme-option {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+input[type="radio"]:checked + .theme-option i {
+  color: white;
+}
