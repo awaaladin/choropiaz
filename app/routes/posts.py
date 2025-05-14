@@ -22,7 +22,6 @@ ALLOWED_IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "gif"}
 ALLOWED_VIDEO_EXTENSIONS = {"mp4", "mov", "avi", "webm"}
 PROFILE_PIC_FOLDER = 'static/profile_pics'
 
-# Ensure the folder exists
 if not os.path.exists(PROFILE_PIC_FOLDER):
     os.makedirs(PROFILE_PIC_FOLDER)
 
