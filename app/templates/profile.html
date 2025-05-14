@@ -122,22 +122,23 @@
 </div>
 
 <style>
-    /* Facebook-inspired styling with unique touches */
+    /* Dark mode styling inspired by GitHub dark theme */
     :root {
-        --primary-color: #1877f2;
-        --secondary-color: #42b72a;
-        --bg-color: #f0f2f5;
-        --card-bg: #ffffff;
-        --text-color: #1c1e21;
-        --secondary-text: #65676b;
-        --border-color: #dddfe2;
-        --hover-bg: #f2f2f2;
+        --bg-color: #0d1117;
+        --card-bg: #161b22;
+        --text-color: #c9d1d9;
+        --secondary-text: #8b949e;
+        --border-color: #30363d;
+        --primary-color: #58a6ff;
+        --secondary-color: #238636;
+        --hover-bg: #21262d;
+        --cover-gradient: linear-gradient(135deg, #1e2533, #2d333b);
     }
     
     body {
         background-color: var(--bg-color);
         color: var(--text-color);
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
     
     .profile-container {
@@ -148,10 +149,12 @@
     /* Cover Photo Area */
     .cover-photo {
         height: 200px;
-        background: linear-gradient(135deg, #3b5998, #8b9dc3);
-        border-radius: 8px 8px 0 0;
+        background: var(--cover-gradient);
+        border-radius: 6px 6px 0 0;
         position: relative;
         margin-bottom: 70px;
+        border: 1px solid var(--border-color);
+        border-bottom: none;
     }
     
     .profile-picture-container {
@@ -164,9 +167,9 @@
         width: 168px;
         height: 168px;
         border-radius: 50%;
-        border: 4px solid white;
+        border: 4px solid var(--card-bg);
         object-fit: cover;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
         transition: filter 0.3s ease;
     }
     
@@ -188,11 +191,11 @@
     
     .profile-picture-container:hover .edit-overlay {
         opacity: 1;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(0, 0, 0, 0.6);
     }
     
     .profile-picture-container:hover .profile-picture {
-        filter: brightness(0.8);
+        filter: brightness(0.7);
     }
     
     .edit-icon {
@@ -219,6 +222,7 @@
         font-size: 32px;
         font-weight: bold;
         margin: 0;
+        color: var(--text-color);
     }
     
     .action-buttons {
@@ -230,42 +234,44 @@
         padding: 8px 16px;
         border-radius: 6px;
         font-weight: 600;
-        font-size: 15px;
+        font-size: 14px;
         display: flex;
         align-items: center;
         gap: 5px;
         cursor: pointer;
-        border: none;
+        border: 1px solid var(--border-color);
         transition: all 0.2s ease;
     }
     
     .btn-follow {
         background-color: var(--primary-color);
-        color: white;
+        color: #ffffff;
+        border-color: rgba(240, 246, 252, 0.1);
     }
     
     .btn-following {
-        background-color: var(--bg-color);
+        background-color: var(--hover-bg);
         color: var(--text-color);
     }
     
     .btn-message {
-        background-color: var(--bg-color);
+        background-color: var(--hover-bg);
         color: var(--text-color);
     }
     
     .btn-edit-profile {
-        background-color: var(--bg-color);
+        background-color: var(--hover-bg);
         color: var(--text-color);
         text-decoration: none;
     }
     
-    .btn-follow:hover, .btn-edit-profile:hover {
-        background-color: #166fe5;
+    .btn-follow:hover {
+        background-color: #0969da;
+        border-color: rgba(240, 246, 252, 0.1);
     }
     
-    .btn-following:hover, .btn-message:hover {
-        background-color: var(--hover-bg);
+    .btn-following:hover, .btn-message:hover, .btn-edit-profile:hover {
+        background-color: #30363d;
     }
     
     /* Main Content Area */
@@ -285,13 +291,13 @@
     
     .about-card, .friends-card, .photos-card {
         background-color: var(--card-bg);
-        border-radius: 8px;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
         padding: 15px;
     }
     
     .about-card h3, .friends-card h3, .photos-card h3 {
-        font-size: 20px;
+        font-size: 16px;
         font-weight: 600;
         margin-top: 0;
         margin-bottom: 15px;
@@ -301,17 +307,21 @@
         gap: 8px;
     }
     
+    .about-card h3 i, .friends-card h3 i, .photos-card h3 i {
+        color: var(--primary-color);
+    }
+    
     .about-item {
         display: flex;
         align-items: center;
         margin-bottom: 12px;
-        font-size: 15px;
+        font-size: 14px;
         color: var(--secondary-text);
     }
     
     .about-item i {
         width: 20px;
-        color: var(--primary-color);
+        color: var(--secondary-text);
         margin-right: 10px;
     }
     
@@ -338,8 +348,8 @@
     .friend-placeholder, .photo-placeholder {
         width: 100%;
         padding-top: 100%; /* Aspect ratio 1:1 */
-        background-color: #e4e6eb;
-        border-radius: 8px;
+        background-color: #24292e;
+        border-radius: 6px;
     }
     
     .see-all {
@@ -349,12 +359,12 @@
         text-decoration: none;
         padding: 8px;
         font-weight: 600;
-        font-size: 15px;
+        font-size: 14px;
+        border-radius: 6px;
     }
     
     .see-all:hover {
         background-color: var(--hover-bg);
-        border-radius: 6px;
     }
     
     /* Posts Section */
@@ -366,8 +376,8 @@
     
     .create-post {
         background-color: var(--card-bg);
-        border-radius: 8px;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
         padding: 12px;
         display: flex;
         align-items: center;
@@ -387,16 +397,17 @@
     
     .post-input input {
         width: 100%;
-        border: none;
-        background-color: var(--hover-bg);
-        border-radius: 20px;
-        padding: 10px 15px;
-        font-size: 15px;
+        border: 1px solid var(--border-color);
+        background-color: var(--bg-color);
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 14px;
         color: var(--secondary-text);
     }
     
     .post-input input:focus {
         outline: none;
+        border-color: var(--primary-color);
     }
     
     .empty-posts {
@@ -407,13 +418,13 @@
         padding: 40px 0;
         color: var(--secondary-text);
         background-color: var(--card-bg);
-        border-radius: 8px;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
     }
     
     .empty-posts i {
         margin-bottom: 15px;
-        color: #BCC0C4;
+        color: #393f47;
     }
     
     /* Responsive adjustments */
@@ -435,7 +446,7 @@
         
         .action-buttons {
             width: 100%;
-            justify-content: center;
+            justify-content: flex-start;
         }
     }
 </style>
@@ -454,6 +465,12 @@
                 }
             });
         }
+        
+        // Force dark mode
+        document.documentElement.setAttribute('data-theme', 'dark');
+        
+        // Add this class to body if not already present
+        document.body.classList.add('dark-theme');
     });
 </script>
 {% endblock %}
