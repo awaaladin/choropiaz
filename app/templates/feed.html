@@ -142,8 +142,7 @@
                   
                   <!-- Follow Button -->
                   {% if post.user != current_user %}
-                    <form method="POST" action="{{ url_for('follow_user', user_id=post.user.id) }}">
-                      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                  <form method="POST" action="{{ url_for('views.follow_user', user_id=post.user.id) }}">                      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                       <button class="bg-blue-500 text-white text-sm font-medium py-1 px-4 rounded-full hover:bg-blue-600 transition">Follow</button>
                     </form>
                   {% endif %}
