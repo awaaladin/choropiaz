@@ -195,6 +195,40 @@
             }
         });
     </script>
+    <script>
+        // Add this to your base template (just before the closing </body> tag)
+// This ensures that CSRF token is included in all AJAX requests
+document.addEventListener('DOMContentLoaded', function() {
+    // Get CSRF token from meta tag
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    // Set up AJAX defaults to include CSRF token
+    // This will ensure all fetch/XHR requests include the token
+    document.addEventListener('submit', function(e) {
+        if (e.target.tagName === 'FORM' && e.target.method.toLowerCase() === 'post') {
+            // Check if the form already has a CSRF token field
+            if (!e.target.querySelector('input[name="csrf_token"]')) {
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrf_token';
+                csrfInput.value = csrfToken;
+                e.target.appendChild(csrfInput);
+            }
+        }
+    });
+    
+    // For any fetch API calls
+    const originalFetch = window.fetch;
+    window.fetch = function(url, options) {
+        options = options || {};
+        if (options.method && options.method.toLowerCase() === 'post') {
+            options.headers = options.headers || {};
+            options.headers['X-CSRFToken'] = csrfToken;
+        }
+        return originalFetch(url, options);
+    };
+});
+    </script>
     
     <!-- Theme script (link to your new script) -->
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>

@@ -46,11 +46,16 @@ def save_picture(form_picture):
     _, f_ext = os.path.splitext(form_picture.filename)
     picture_filename = random_hex + f_ext
 
-    # Path to save the picture
-    picture_path = os.path.join(PROFILE_PIC_FOLDER, picture_filename)
+    # Make sure the directory exists
+    if not os.path.exists(PROFILE_PIC_FOLDER):
+        os.makedirs(PROFILE_PIC_FOLDER)
+
+    # Full path (with app root directory)
+    abs_path = os.path.join(os.getcwd(), 'app', PROFILE_PIC_FOLDER)
+    picture_path = os.path.join(abs_path, picture_filename)
 
     # Open the image using Pillow and resize it
-    output_size = (125, 125)  # Resize to 125x125 (you can adjust as needed)
+    output_size = (250, 250)  # Increased size for better quality
     i = Image.open(form_picture)
     i.thumbnail(output_size)
     i.save(picture_path)
@@ -248,17 +253,54 @@ def create_post():
     # return redirect(url_for('views.feed'))
     return 'Post created', 200
 
+
+# Update these routes in posts.py
+
 @views.route('/like/<int:post_id>', methods=['POST'])
 @login_required
 def like_post(post_id):
     post = Post.query.get_or_404(post_id)
     like = Like.query.filter_by(user_id=current_user.id, post_id=post_id).first()
+    
     if like:
         db.session.delete(like)
+        db.session.commit()
+        return jsonify({'liked': False, 'likes_count': len(post.likes)})
     else:
         db.session.add(Like(user_id=current_user.id, post_id=post_id))
-    db.session.commit()
-    return redirect(url_for('views.feed'))
+        db.session.commit()
+        return jsonify({'liked': True, 'likes_count': len(post.likes)})
+
+@views.route('/follow/<int:user_id>', methods=['POST'])
+@login_required
+def follow_user(user_id):
+    user = User.query.get_or_404(user_id)
+    is_following = False
+    
+    if user != current_user:
+        if current_user.is_following(user):
+            current_user.unfollow(user)
+            is_following = False
+        else:
+            current_user.follow(user)
+            is_following = True
+        db.session.commit()
+    
+    return jsonify({'following': is_following})
+
+
+
+# @views.route('/like/<int:post_id>', methods=['POST'])
+# @login_required
+# def like_post(post_id):
+#     post = Post.query.get_or_404(post_id)
+#     like = Like.query.filter_by(user_id=current_user.id, post_id=post_id).first()
+#     if like:
+#         db.session.delete(like)
+#     else:
+#         db.session.add(Like(user_id=current_user.id, post_id=post_id))
+#     db.session.commit()
+#     return redirect(url_for('views.feed'))
 
 @views.route('/comment/<int:post_id>', methods=['POST'])
 @login_required
@@ -318,14 +360,14 @@ def user_profile(user_id):
     return render_template('user_profile.html', user=user)
 
 
-@views.route('/follow/<int:user_id>', methods=['POST'])
-@login_required
-def follow_user(user_id):
-    user = User.query.get_or_404(user_id)
-    if user != current_user:
-        current_user.follow(user)
-        db.session.commit()
-    return redirect(request.referrer or url_for('views.feed'))
+# @views.route('/follow/<int:user_id>', methods=['POST'])
+# @login_required
+# def follow_user(user_id):
+#     user = User.query.get_or_404(user_id)
+#     if user != current_user:
+#         current_user.follow(user)
+#         db.session.commit()
+#     return redirect(request.referrer or url_for('views.feed'))
 
 @views.route('/search_users')
 @login_required
@@ -368,6 +410,30 @@ def update_profile():
 
     return render_template('update_profile.html', form=form)
 
+@views.route('/update_profile_picture', methods=['POST'])
+@login_required
+def update_profile_picture():
+    if 'profile_picture' not in request.files:
+        flash('No file part', 'error')
+        return redirect(url_for('views.profile'))
+
+    file = request.files['profile_picture']
+    if file.filename == '':
+        flash('No selected file', 'error')
+        return redirect(url_for('views.profile'))
+
+    if file and allowed_file(file.filename):
+        try:
+            picture_filename = save_picture(file)
+            current_user.profile_picture = picture_filename
+            db.session.commit()
+            flash('Profile picture updated successfully!', 'success')
+        except Exception as e:
+            flash(f'Error updating profile picture: {str(e)}', 'error')
+    else:
+        flash('Invalid file format. Please use JPG, PNG, or GIF files.', 'error')
+
+    return redirect(url_for('views.profile'))
 
 
 

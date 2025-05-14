@@ -639,3 +639,104 @@ border-color: var(--border-color) !important;
 * {
 transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
+/* Add these styles to your style.css file */
+
+/* Small phone media queries (320px-425px) */
+@media screen and (max-width: 425px) {
+  /* General layout adjustments */
+  body {
+    padding-bottom: 60px;  /* Space for the mobile navigation */
+  }
+  
+  .container {
+    padding: 10px;
+    margin: 15px auto;
+  }
+  
+  /* Convert sidebar to horizontal navigation for small screens */
+  .sidebar {
+    display: block !important;
+    width: 100%;
+    padding: 10px;
+    border-radius: 0;
+    margin-bottom: 15px;
+    height: auto;
+    position: relative;
+    top: 0;
+  }
+  
+  .sidebar ul {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 5px 0;
+  }
+  
+  .sidebar li {
+    margin: 0 10px;
+    white-space: nowrap;
+  }
+  
+  /* Adjust feed container for small screens */
+  .feed-container {
+    flex-direction: column;
+    padding: 0;
+  }
+  
+  /* Adjust post cards for small screens */
+  .post-card {
+    border-radius: 8px;
+    margin-bottom: 15px;
+    padding: 12px;
+  }
+  
+  /* Smaller text and elements for small screens */
+  .post-caption {
+    font-size: 14px;
+  }
+  
+  /* Adjust mobile navigation */
+  .md\\:hidden.fixed.bottom-0 .flex {
+    flex-direction: row;
+    justify-content: space-around;
+  }
+  
+  /* Ensure buttons are appropriately sized */
+  button, .btn {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+  
+  /* Flash messages adjustment */
+  .container.mx-auto.px-4.pt-20 {
+    padding-top: 60px;
+  }
+  
+  /* Post creation form adjustments */
+  .create-post-form {
+    padding: 12px;
+  }
+  
+  .create-post-form textarea {
+    height: 80px;
+  }
+}
+
+/* Media object fixes */
+.post-media img, 
+.post-media video {
+  max-height: 500px;
+  width: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+/* Ensure videos are playable */
+video {
+  width: 100%;
+  height: auto;
+  background-color: #000;
+  cursor: pointer;
+}

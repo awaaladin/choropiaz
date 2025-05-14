@@ -5,8 +5,7 @@
     <!-- Cover Photo Area -->
     <div class="cover-photo">
         <div class="profile-picture-container">
-            <img src="{{ url_for('static', filename='profile_pics/' + user.profile_picture) }}" alt="Profile Picture" class="profile-picture">
-            {% if current_user.id == user.id %}
+            <img src="{{ url_for('static', filename='profile_pics/' + (user.profile_picture or 'default.png')) }}" alt="Profile Picture" class="profile-picture">            {% if current_user.id == user.id %}
             <div class="edit-overlay">
                 <form id="profilePicForm" action="{{ url_for('views.update_profile_picture') }}" method="POST" enctype="multipart/form-data">
                     <input type="file" name="profile_picture" id="profilePicInput" style="display: none;">
