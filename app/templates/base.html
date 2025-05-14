@@ -26,22 +26,21 @@
             }
         }
     </script>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-<script>
-    // Apply saved theme immediately to prevent flash of wrong theme
-    (function() {
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        
-        if (savedTheme === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-        } else if (savedTheme === 'system') {
-            const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            document.documentElement.setAttribute('data-theme', prefersDarkScheme ? 'dark' : 'light');
-        } else {
-            document.documentElement.setAttribute('data-theme', 'light');
-        }
-    })();
-</script>
+    <!-- Apply theme immediately to prevent flash -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else if (savedTheme === 'system') {
+                const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.setAttribute('data-theme', prefersDarkScheme ? 'dark' : 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="bg-choropia-gray min-h-screen">
@@ -86,6 +85,11 @@
 
                 <!-- Right Navigation -->
                 <div class="flex items-center space-x-2">
+                    <!-- Theme Toggle Button (Added) -->
+                    <button id="themeToggleBtn" class="p-2 rounded-full bg-choropia-gray hover:bg-gray-200">
+                        <i id="themeToggleIcon" class="bi bi-moon text-xl"></i>
+                    </button>
+                    
                     {% if current_user.is_authenticated %}
                         <div class="relative group">
                             <button class="p-2 rounded-full bg-choropia-gray hover:bg-gray-200">
@@ -191,5 +195,8 @@
             }
         });
     </script>
+    
+    <!-- Theme script (link to your new script) -->
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
 </body>
 </html>
