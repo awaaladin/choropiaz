@@ -8,8 +8,9 @@ from app.extensions import socketio
 # Initialize extensions
 db = SQLAlchemy()
 login_manager = LoginManager()
+login_manager.login_view = 'login'  
 csrf = CSRFProtect()
-migrate = Migrate()  # ✅ You missed this line in your version
+migrate = Migrate()  
 
 def create_app():
     app = Flask(__name__, static_folder='static')
@@ -25,6 +26,8 @@ def create_app():
     csrf.init_app(app)
     migrate.init_app(app, db)  
     socketio.init_app(app)
+    login_manager.init_app(app)
+
 
     @app.context_processor
     def inject_csrf_token():

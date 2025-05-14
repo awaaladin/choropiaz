@@ -154,15 +154,16 @@ def load_feed_data():
 
 
 @views.route('/', methods=['GET', 'POST'])
-@login_required
 def home():
+    if not current_user.is_authenticated:
+        return redirect(url_for('login'))  # or 'auth.login' if it's in a blueprint
     form, posts, search_query, top_weekly_posts = load_feed_data()
 
     sort_by = request.args.get('sort', 'recent')
     if sort_by == 'likes':
         posts.sort(key=lambda x: x.likes, reverse=True)
     elif sort_by == 'trending':
-        posts = get_trending_posts()  # Handle trending
+        posts = get_trending_posts()
     else:
         posts.sort(key=lambda x: x.timestamp, reverse=True)
 
@@ -174,6 +175,7 @@ def home():
         form=form,
         stories=top_weekly_posts
     )
+
 
 
 
