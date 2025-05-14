@@ -45,7 +45,7 @@ def login():
             return redirect(url_for('views.home'))
         flash('Invalid credentials', category='error')
 
-    return render_template('login.html', form=form)
+    return render_template('auth.login.html', form=form)
 
 @auth.route('/logout')
 @login_required
