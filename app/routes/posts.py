@@ -153,7 +153,7 @@ def load_feed_data():
 
 
 
-@views.route('/home', methods=['GET', 'POST'])
+@views.route('/', methods=['GET', 'POST'])
 @login_required
 def home():
     form, posts, search_query, top_weekly_posts = load_feed_data()
