@@ -156,7 +156,7 @@ def load_feed_data():
 @views.route('/', methods=['GET', 'POST'])
 def home():
     if not current_user.is_authenticated:
-        return redirect(url_for('login'))  # or 'auth.login' if it's in a blueprint
+        return redirect(url_for('auth.login'))  
     form, posts, search_query, top_weekly_posts = load_feed_data()
 
     sort_by = request.args.get('sort', 'recent')
