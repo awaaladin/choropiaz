@@ -1,15 +1,160 @@
 {% extends "base.html" %}
-{% block title %}Login{% endblock %}
+{% block title %}Login - CHOROPIA{% endblock %}
 
 {% block content %}
-<div class="auth-form">
-    <h2>Login</h2>
-    <form method="POST">
-        {{ form.hidden_tag() }}  <!-- CSRF token -->
-        <input type="email" name="email" placeholder="Email" required class="form-control" value="{{ form.email.data }}">
-        <input type="password" name="password" placeholder="Password" required class="form-control">
-        <button type="submit" class="btn btn-success">Login</button>
-    </form>
-    <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Register</a></p>
+<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
+    <div class="w-full max-w-md">
+        <!-- Login Card -->
+        <div class="bg-white dark:bg-choropia-dark rounded-xl shadow-card p-8 transition-all duration-200">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-choropia-text dark:text-choropia-light mb-2">Welcome Back</h1>
+                <p class="text-choropia-secondary dark:text-choropia-secondary">Sign in to continue to CHOROPIA</p>
+            </div>
+
+            <form method="POST" class="space-y-6">
+                {{ form.hidden_tag() }}
+                
+                <div class="space-y-4">
+                    <div class="form-group">
+                        <label for="email" class="block text-sm font-medium text-choropia-text dark:text-choropia-light mb-1">Email</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="bi bi-envelope text-choropia-secondary"></i>
+                            </div>
+                            <input type="email" 
+                                   name="email" 
+                                   id="email"
+                                   value="{{ form.email.data }}"
+                                   required 
+                                   class="form-input pl-10 w-full bg-choropia-gray dark:bg-choropia-dark border border-choropia-border dark:border-choropia-border rounded-lg py-2.5 px-4 focus:outline-none focus:ring-2 focus:ring-choropia-blue focus:border-transparent transition-all duration-200"
+                                   placeholder="Enter your email">
+                        </div>
+                        {% if form.email.errors %}
+                            <div class="mt-1 text-sm text-red-500">
+                                {% for error in form.email.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" class="block text-sm font-medium text-choropia-text dark:text-choropia-light mb-1">Password</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="bi bi-lock text-choropia-secondary"></i>
+                            </div>
+                            <input type="password" 
+                                   name="password" 
+                                   id="password"
+                                   required 
+                                   class="form-input pl-10 w-full bg-choropia-gray dark:bg-choropia-dark border border-choropia-border dark:border-choropia-border rounded-lg py-2.5 px-4 focus:outline-none focus:ring-2 focus:ring-choropia-blue focus:border-transparent transition-all duration-200"
+                                   placeholder="Enter your password">
+                            <button type="button" 
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-choropia-secondary hover:text-choropia-text dark:hover:text-choropia-light transition-colors"
+                                    onclick="togglePassword('password')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        {% if form.password.errors %}
+                            <div class="mt-1 text-sm text-red-500">
+                                {% for error in form.password.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input type="checkbox" 
+                               id="remember" 
+                               name="remember" 
+                               class="h-4 w-4 text-choropia-blue focus:ring-choropia-blue border-choropia-border rounded">
+                        <label for="remember" class="ml-2 block text-sm text-choropia-secondary dark:text-choropia-secondary">
+                            Remember me
+                        </label>
+                    </div>
+                    <a href="#" class="text-sm text-choropia-blue hover:underline transition-colors">
+                        Forgot password?
+                    </a>
+                </div>
+
+                <button type="submit" 
+                        class="w-full bg-choropia-blue text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-choropia-blue focus:ring-offset-2 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-choropia-secondary dark:text-choropia-secondary">
+                    Don't have an account? 
+                    <a href="{{ url_for('auth.register') }}" class="text-choropia-blue hover:underline font-medium transition-colors">
+                        Register
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Social Login -->
+        <div class="mt-8 text-center">
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-choropia-border"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-white dark:bg-choropia-dark text-choropia-secondary">
+                        Or continue with
+                    </span>
+                </div>
+            </div>
+
+            <div class="mt-6 grid grid-cols-2 gap-3">
+                <button type="button" 
+                        class="w-full inline-flex justify-center items-center px-4 py-2 border border-choropia-border rounded-lg shadow-sm bg-white dark:bg-choropia-dark text-choropia-text dark:text-choropia-light hover:bg-choropia-gray dark:hover:bg-choropia-dark transition-colors">
+                    <i class="bi bi-google text-lg mr-2"></i>
+                    Google
+                </button>
+                <button type="button" 
+                        class="w-full inline-flex justify-center items-center px-4 py-2 border border-choropia-border rounded-lg shadow-sm bg-white dark:bg-choropia-dark text-choropia-text dark:text-choropia-light hover:bg-choropia-gray dark:hover:bg-choropia-dark transition-colors">
+                    <i class="bi bi-facebook text-lg mr-2 text-[#1877F2]"></i>
+                    Facebook
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const icon = input.nextElementSibling.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('bi-eye', 'bi-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('bi-eye-slash', 'bi-eye');
+    }
+}
+
+// Add animation to form elements
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const inputs = form.querySelectorAll('input');
+    
+    inputs.forEach((input, index) => {
+        input.style.opacity = '0';
+        input.style.transform = 'translateY(10px)';
+        input.style.transition = 'all 0.3s ease';
+        
+        setTimeout(() => {
+            input.style.opacity = '1';
+            input.style.transform = 'translateY(0)';
+        }, 100 * index);
+    });
+});
+</script>
 {% endblock %}

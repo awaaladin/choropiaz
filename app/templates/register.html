@@ -1,16 +1,167 @@
 {% extends "base.html" %}
-{% block title %}Register{% endblock %}
+{% block title %}Register - CHOROPIA{% endblock %}
 
 {% block content %}
-<div class="auth-form">
-    <h2>Register</h2>
-    <form method="POST">
-        {{ form.hidden_tag() }}  <!-- CSRF token -->
-        <input type="text" name="username" placeholder="Username" required class="form-control" value="{{ form.username.data }}">
-        <input type="email" name="email" placeholder="Email" required class="form-control" value="{{ form.email.data }}">
-        <input type="password" name="password" placeholder="Password" required class="form-control">
-        <button type="submit" class="btn btn-primary">Register</button>
-    </form>
-    <p>Already have an account? <a href="{{ url_for('auth.login') }}">Login</a></p>
+<div class="min-h-screen bg-choropia-gray dark:bg-choropia-dark pt-16">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-md mx-auto">
+            <!-- Register Card -->
+            <div class="bg-white dark:bg-choropia-dark rounded-xl shadow-card p-8">
+                <!-- Header -->
+                <div class="text-center mb-8">
+                    <h1 class="text-2xl font-bold text-choropia-text dark:text-choropia-light mb-2">Create Account</h1>
+                    <p class="text-choropia-secondary dark:text-choropia-secondary">Join CHOROPIA and connect with friends</p>
+                </div>
+
+                <!-- Register Form -->
+                <form method="POST" class="space-y-4">
+                    {{ form.hidden_tag() }}  <!-- CSRF token -->
+                    
+                    <!-- Username Field -->
+                    <div class="relative">
+                        <label for="username" class="block text-sm font-medium text-choropia-text dark:text-choropia-light mb-1">
+                            Username
+                        </label>
+                        <div class="relative">
+                            <i class="bi bi-person absolute left-3 top-1/2 transform -translate-y-1/2 text-choropia-secondary"></i>
+                            <input type="text" 
+                                   id="username"
+                                   name="username" 
+                                   placeholder="Choose a username" 
+                                   required 
+                                   value="{{ form.username.data }}"
+                                   class="w-full bg-white dark:bg-choropia-dark border border-choropia-border rounded-lg py-2.5 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-choropia-blue focus:border-transparent transition-all duration-200">
+                        </div>
+                    </div>
+
+                    <!-- Email Field -->
+                    <div class="relative">
+                        <label for="email" class="block text-sm font-medium text-choropia-text dark:text-choropia-light mb-1">
+                            Email
+                        </label>
+                        <div class="relative">
+                            <i class="bi bi-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-choropia-secondary"></i>
+                            <input type="email" 
+                                   id="email"
+                                   name="email" 
+                                   placeholder="Enter your email" 
+                                   required 
+                                   value="{{ form.email.data }}"
+                                   class="w-full bg-white dark:bg-choropia-dark border border-choropia-border rounded-lg py-2.5 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-choropia-blue focus:border-transparent transition-all duration-200">
+                        </div>
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="relative">
+                        <label for="password" class="block text-sm font-medium text-choropia-text dark:text-choropia-light mb-1">
+                            Password
+                        </label>
+                        <div class="relative">
+                            <i class="bi bi-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-choropia-secondary"></i>
+                            <input type="password" 
+                                   id="password"
+                                   name="password" 
+                                   placeholder="Create a password" 
+                                   required
+                                   class="w-full bg-white dark:bg-choropia-dark border border-choropia-border rounded-lg py-2.5 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-choropia-blue focus:border-transparent transition-all duration-200">
+                            <button type="button" 
+                                    onclick="togglePasswordVisibility('password')"
+                                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-choropia-secondary hover:text-choropia-text dark:hover:text-choropia-light">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Terms and Conditions -->
+                    <div class="flex items-start space-x-2 mt-6">
+                        <input type="checkbox" 
+                               id="terms" 
+                               required
+                               class="mt-1 form-checkbox text-choropia-blue focus:ring-choropia-blue rounded">
+                        <label for="terms" class="text-sm text-choropia-text dark:text-choropia-light">
+                            I agree to the <a href="#" class="text-choropia-blue hover:underline">Terms of Service</a> and <a href="#" class="text-choropia-blue hover:underline">Privacy Policy</a>
+                        </label>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" 
+                            class="w-full bg-choropia-blue text-white py-2.5 rounded-lg font-medium hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-choropia-blue focus:ring-offset-2 transition-all duration-200 mt-6">
+                        Create Account
+                    </button>
+                </form>
+
+                <!-- Social Login -->
+                <div class="mt-8">
+                    <div class="relative">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-choropia-border"></div>
+                        </div>
+                        <div class="relative flex justify-center text-sm">
+                            <span class="px-2 bg-white dark:bg-choropia-dark text-choropia-secondary">
+                                Or continue with
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mt-6">
+                        <button type="button" 
+                                class="flex items-center justify-center space-x-2 bg-white dark:bg-choropia-dark border border-choropia-border rounded-lg py-2.5 px-4 hover:bg-choropia-hover dark:hover:bg-choropia-border transition-colors">
+                            <i class="bi bi-google text-choropia-red"></i>
+                            <span class="text-sm font-medium text-choropia-text dark:text-choropia-light">Google</span>
+                        </button>
+                        <button type="button" 
+                                class="flex items-center justify-center space-x-2 bg-white dark:bg-choropia-dark border border-choropia-border rounded-lg py-2.5 px-4 hover:bg-choropia-hover dark:hover:bg-choropia-border transition-colors">
+                            <i class="bi bi-facebook text-choropia-blue"></i>
+                            <span class="text-sm font-medium text-choropia-text dark:text-choropia-light">Facebook</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Login Link -->
+                <p class="text-center text-sm text-choropia-secondary dark:text-choropia-secondary mt-8">
+                    Already have an account? 
+                    <a href="{{ url_for('auth.login') }}" 
+                       class="text-choropia-blue hover:underline font-medium">
+                        Sign in
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+// Toggle password visibility
+function togglePasswordVisibility(inputId) {
+    const input = document.getElementById(inputId);
+    const icon = input.nextElementSibling.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('bi-eye');
+        icon.classList.add('bi-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('bi-eye-slash');
+        icon.classList.add('bi-eye');
+    }
+}
+
+// Add animation to form elements
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.querySelector('form');
+    const elements = form.querySelectorAll('input, button');
+    
+    elements.forEach((element, index) => {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(10px)';
+        element.style.transition = 'all 0.3s ease';
+        
+        setTimeout(() => {
+            element.style.opacity = '1';
+            element.style.transform = 'translateY(0)';
+        }, 100 * index);
+    });
+});
+</script>
 {% endblock %}
