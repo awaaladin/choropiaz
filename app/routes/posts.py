@@ -410,30 +410,30 @@ def update_profile():
 
     return render_template('update_profile.html', form=form)
 
-@views.route('/update_profile_picture', methods=['POST'])
-@login_required
-def update_profile_picture():
-    if 'profile_picture' not in request.files:
-        flash('No file part', 'error')
-        return redirect(url_for('views.profile'))
+# @views.route('/update_profile_picture', methods=['POST'])
+# @login_required
+# def update_profile_picture():
+#     if 'profile_picture' not in request.files:
+#         flash('No file part', 'error')
+#         return redirect(url_for('views.profile'))
 
-    file = request.files['profile_picture']
-    if file.filename == '':
-        flash('No selected file', 'error')
-        return redirect(url_for('views.profile'))
+#     file = request.files['profile_picture']
+#     if file.filename == '':
+#         flash('No selected file', 'error')
+#         return redirect(url_for('views.profile'))
 
-    if file and allowed_file(file.filename):
-        try:
-            picture_filename = save_picture(file)
-            current_user.profile_picture = picture_filename
-            db.session.commit()
-            flash('Profile picture updated successfully!', 'success')
-        except Exception as e:
-            flash(f'Error updating profile picture: {str(e)}', 'error')
-    else:
-        flash('Invalid file format. Please use JPG, PNG, or GIF files.', 'error')
+#     if file and allowed_file(file.filename):
+#         try:
+#             picture_filename = save_picture(file)
+#             current_user.profile_picture = picture_filename
+#             db.session.commit()
+#             flash('Profile picture updated successfully!', 'success')
+#         except Exception as e:
+#             flash(f'Error updating profile picture: {str(e)}', 'error')
+#     else:
+#         flash('Invalid file format. Please use JPG, PNG, or GIF files.', 'error')
 
-    return redirect(url_for('views.profile'))
+#     return redirect(url_for('views.profile'))
 
 
 
