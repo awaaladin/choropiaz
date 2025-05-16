@@ -1,7 +1,11 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFProtect
+
 
 db = SQLAlchemy()
+csrf = CSRFProtect()
+
 
 def create_app():
     app = Flask(__name__)
@@ -13,5 +17,9 @@ def create_app():
     # Import and register the blueprint
     from app.routes.posts import views  # Import the blueprint object
     app.register_blueprint(views)
+    csrf.init_app(app)
 
     return app
+
+
+
