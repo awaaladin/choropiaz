@@ -9,6 +9,7 @@ from app.models.models import Post, Comment, Like, User, Category
 from app.forms import PostForm, ProfileForm, RegisterForm, SettingsForm, UpdateProfileForm, ReelForm
 from PIL import Image
 from flask_socketio import SocketIO, emit
+from app.forms import UpdateProfileForm  
 from app.extensions import socketio
 
 
@@ -28,11 +29,11 @@ if not os.path.exists(PROFILE_PIC_FOLDER):
 
 
 
-@socketio.on('connect')
-def handle_connect():
-    # Emit latest notifications to the connected user
-    notifications = get_user_notifications(current_user.id)
-    emit('notifications', notifications)
+# @socketio.on('connect')
+# def handle_connect():
+#     # Emit latest notifications to the connected user
+#     notifications = get_user_notifications(current_user.id)
+#     emit('notifications', notifications)
 
 def send_daily_notification(user_id, message):
     socketio.emit('new_notification', {'message': message}, room=user_id)
@@ -115,45 +116,53 @@ def get_trending_posts():
 
 
 
+
 def load_feed_data():
     form = PostForm()
     search_query = request.args.get('search')
 
-    followed_posts_query = current_user.followed_posts().order_by(Post.timestamp.desc())
-    user_posts_query = Post.query.filter_by(user_id=current_user.id).order_by(Post.timestamp.desc())
+    followed_posts_query = current_user.followed_posts() if hasattr(current_user, 'followed_posts') else None
+    
+    if followed_posts_query:
+        followed_posts_query = followed_posts_query.order_by(Post.timestamp.desc())
+        
+        if search_query:
+            try:
+                category_enum = Category[search_query.upper()]
+                followed_posts_query = followed_posts_query.filter(Post.category == category_enum)
+            except KeyError:
+                followed_posts_query = followed_posts_query.filter(Post.content.ilike(f'%{search_query}%'))
+        
+        followed_posts = followed_posts_query.all()
+    else:
+        followed_posts = []
 
+    # Get current user's posts
+    user_posts_query = Post.query.filter_by(user_id=current_user.id).order_by(Post.timestamp.desc())
+    
+    # Apply the same search filter
     if search_query:
         try:
             category_enum = Category[search_query.upper()]
-            followed_posts_query = followed_posts_query.filter(Post.category == category_enum)
             user_posts_query = user_posts_query.filter(Post.category == category_enum)
         except KeyError:
-            pass
-
-    followed_posts = followed_posts_query.all()
+            user_posts_query = user_posts_query.filter(Post.content.ilike(f'%{search_query}%'))
+    
     user_posts = user_posts_query.all()
 
+    # Combine and sort all posts
     all_posts = followed_posts + user_posts
-    all_posts = list(set(all_posts))  # Remove duplicates if needed
+    all_posts = list(set(all_posts))  # Remove duplicates
     all_posts.sort(key=lambda x: x.timestamp, reverse=True)
+    
+    # If no posts are found from follows or own posts, get recent public posts
     if not all_posts:
-        all_posts = Post.query.order_by(Post.timestamp.desc()).all()
+        all_posts = Post.query.order_by(Post.timestamp.desc()).limit(20).all()
 
-
-    # If still no posts, show public posts
-    if not all_posts:
-        all_posts = Post.query.order_by(Post.timestamp.desc()).all()
-
+    # Get top weekly posts
     top_weekly_posts = get_top_weekly_posts()
-    if not top_weekly_posts:
-        top_weekly_posts = {
-            'Goods': [],
-            'Services': [],
-            'Info': []
-        }
-
+    
     return form, all_posts, search_query, top_weekly_posts
-
 
 
 
@@ -214,47 +223,46 @@ def all_posts_feed():
     return render_template('feed.html', posts=posts)
 
 
-@views.route('/create_post', methods=['POST'])
-@login_required
-def create_post():
-    if request.method == 'POST':
-        caption = request.form['caption']
-        category_str = request.form.get('category')
+# @views.route('/create_post', methods=['POST'])
+# @login_required
+# def create_post():
+#     if request.method == 'POST':
+#         caption = request.form['caption']
+#         category_str = request.form.get('category')
 
-        try:
-            category_enum = Category[category_str.lower()]
-        except (KeyError, AttributeError):
-            flash("Please select a valid category.", "danger")
-            return redirect(url_for('views.feed'))
+#         try:
+#             category_enum = Category[category_str.lower()]
+#         except (KeyError, AttributeError):
+#             flash("Please select a valid category.", "danger")
+#             return redirect(url_for('views.feed'))
 
-        media_path, media_type = None, None
-        for field in ['image', 'video']:
-            file = request.files.get(field)
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                media_path = os.path.join(UPLOAD_FOLDER, filename)
-                file.save(media_path)
-                media_type = get_media_type(filename)
-                break
+#         media_path, media_type = None, None
+#         for field in ['image', 'video']:
+#             file = request.files.get(field)
+#             if file and allowed_file(file.filename):
+#                 filename = secure_filename(file.filename)
+#                 media_path = os.path.join(UPLOAD_FOLDER, filename)
+#                 file.save(media_path)
+#                 media_type = get_media_type(filename)
+#                 break
 
-        new_post = Post(
-            content=caption,
-            category=category_enum,
-            media_path=media_path,
-            media_type=media_type,
-            user_id=current_user.id,
-            views=0
-        )
-        db.session.add(new_post)
-        db.session.commit()
+#         new_post = Post(
+#             content=caption,
+#             category=category_enum,
+#             media_path=media_path,
+#             media_type=media_type,
+#             user_id=current_user.id,
+#             views=0
+#         )
+#         db.session.add(new_post)
+#         db.session.commit()
 
-        flash("Post created successfully!", "success")
-        return redirect(url_for('views.feed'))
-    # return redirect(url_for('views.feed'))
-    return 'Post created', 200
+#         flash("Post created successfully!", "success")
+#         return redirect(url_for('views.feed'))
+#     # return redirect(url_for('views.feed'))
+#     return 'Post created', 200
 
 
-# Update these routes in posts.py
 
 @views.route('/like/<int:post_id>', methods=['POST'])
 @login_required
@@ -290,17 +298,6 @@ def follow_user(user_id):
 
 
 
-# @views.route('/like/<int:post_id>', methods=['POST'])
-# @login_required
-# def like_post(post_id):
-#     post = Post.query.get_or_404(post_id)
-#     like = Like.query.filter_by(user_id=current_user.id, post_id=post_id).first()
-#     if like:
-#         db.session.delete(like)
-#     else:
-#         db.session.add(Like(user_id=current_user.id, post_id=post_id))
-#     db.session.commit()
-#     return redirect(url_for('views.feed'))
 
 @views.route('/comment/<int:post_id>', methods=['POST'])
 @login_required
@@ -353,21 +350,14 @@ def profile():
         return redirect(url_for('views.profile'))
     return render_template('profile.html', form=form, user=current_user)
 
-@views.route('/user/<int:user_id>')
-@login_required
-def user_profile(user_id):
-    user = User.query.get_or_404(user_id)
-    return render_template('user_profile.html', user=user)
-
-
-# @views.route('/follow/<int:user_id>', methods=['POST'])
+# @views.route('/user/<int:user_id>')
 # @login_required
-# def follow_user(user_id):
+# def user_profile(user_id):
 #     user = User.query.get_or_404(user_id)
-#     if user != current_user:
-#         current_user.follow(user)
-#         db.session.commit()
-#     return redirect(request.referrer or url_for('views.feed'))
+#     return render_template('user_profile.html', user=user)
+
+
+
 
 @views.route('/search_users')
 @login_required
@@ -377,7 +367,6 @@ def search_users():
     return render_template('search_users.html', users=users, query=query)
 
 
-from app.forms import UpdateProfileForm  
 
 @views.route('/update_profile', methods=['GET', 'POST'])
 @login_required
@@ -410,30 +399,7 @@ def update_profile():
 
     return render_template('update_profile.html', form=form)
 
-# @views.route('/update_profile_picture', methods=['POST'])
-# @login_required
-# def update_profile_picture():
-#     if 'profile_picture' not in request.files:
-#         flash('No file part', 'error')
-#         return redirect(url_for('views.profile'))
 
-#     file = request.files['profile_picture']
-#     if file.filename == '':
-#         flash('No selected file', 'error')
-#         return redirect(url_for('views.profile'))
-
-#     if file and allowed_file(file.filename):
-#         try:
-#             picture_filename = save_picture(file)
-#             current_user.profile_picture = picture_filename
-#             db.session.commit()
-#             flash('Profile picture updated successfully!', 'success')
-#         except Exception as e:
-#             flash(f'Error updating profile picture: {str(e)}', 'error')
-#     else:
-#         flash('Invalid file format. Please use JPG, PNG, or GIF files.', 'error')
-
-#     return redirect(url_for('views.profile'))
 
 
 
@@ -457,12 +423,7 @@ def settings():
 
     return render_template('settings.html', form=form, user_data=user_data)
 
-@views.route('/reels')
-@login_required
-def reels():
-    # Query posts with video media type
-    reels = Post.query.filter_by(media_type='video').order_by(Post.timestamp.desc()).all()
-    return render_template('reels.html', reels=reels)
+
 
 
 @views.route('/reels/<int:reel_id>/like', methods=['POST'])
@@ -521,31 +482,164 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# @views.route('/update_profile_picture', methods=['POST'])
+# @login_required
+# def update_profile_picture():
+#     if 'profile_picture' not in request.files:
+#         flash('No file part')
+#         return redirect(url_for('views.profile'))
+
+#     file = request.files['profile_picture']
+#     if file.filename == '':
+#         flash('No selected file')
+#         return redirect(url_for('views.profile'))
+
+#     if file and allowed_file(file.filename):
+#         filename = secure_filename(file.filename)
+#         file_path = os.path.join('app/static/profile_pics', filename)
+#         file.save(file_path)
+
+#         current_user.profile_picture = filename  # Assuming you have this field
+#         db.session.commit()
+#         flash('Profile picture updated!')
+#     else:
+#         flash('Invalid file format.')
+
+#     return redirect(url_for('views.profile'))
+
+# Fixes for posts.py
+
+# 1. Fix the create_post function to properly handle files and categories
+@views.route('/create_post', methods=['POST'])
+@login_required
+def create_post():
+    if request.method == 'POST':
+        caption = request.form['caption']
+        category_str = request.form.get('category')
+
+        # Check if category exists
+        try:
+            # Make sure it's uppercase when looking up the enum
+            category_enum = Category[category_str.upper()]  # CHANGED: Use uppercase for enum lookup
+        except (KeyError, AttributeError):
+            flash("Please select a valid category.", "danger")
+            return redirect(url_for('views.feed'))
+
+        media_path, media_type = None, None
+        
+        # Check if any file was uploaded
+        if 'image' in request.files and request.files['image'].filename:
+            file = request.files['image']
+            if allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                # Make sure the upload folder exists
+                if not os.path.exists(UPLOAD_FOLDER):
+                    os.makedirs(UPLOAD_FOLDER)
+                # Use os.path.join correctly for the full file path
+                file_path = os.path.join(os.getcwd(), 'app', UPLOAD_FOLDER, filename)
+                file.save(file_path)
+                # Store just the relative path in the database
+                media_path = os.path.join(UPLOAD_FOLDER, filename)
+                media_type = 'image'
+        
+        elif 'video' in request.files and request.files['video'].filename:
+            file = request.files['video']
+            if allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                if not os.path.exists(UPLOAD_FOLDER):
+                    os.makedirs(UPLOAD_FOLDER)
+                file_path = os.path.join(os.getcwd(), 'app', UPLOAD_FOLDER, filename)
+                file.save(file_path)
+                media_path = os.path.join(UPLOAD_FOLDER, filename)
+                media_type = 'video'
+
+        # Create new post
+        new_post = Post(
+            content=caption,
+            category=category_enum,
+            media_path=media_path,
+            media_type=media_type,
+            user_id=current_user.id,
+            views=0,
+            timestamp=datetime.utcnow()  # ADDED: Explicitly set timestamp
+        )
+        db.session.add(new_post)
+        db.session.commit()
+
+        flash("Post created successfully!", "success")
+        return redirect(url_for('views.feed'))
+
+    return redirect(url_for('views.feed'))
+
+
+# 3. Fix reels view to properly handle video playback
+@views.route('/reels')
+@login_required
+def reels():
+    # Query posts with video media type
+    reels = Post.query.filter_by(media_type='video').order_by(Post.timestamp.desc()).all()
+    
+    # Make sure media paths are correctly formatted for web access
+    for reel in reels:
+        # If the path doesn't start with 'static/', prepend it for proper URL construction
+        if reel.media_path and not reel.media_path.startswith('/'):
+            if reel.media_path.startswith('static/'):
+                reel.media_path = '/' + reel.media_path
+            else:
+                reel.media_path = '/static/' + reel.media_path
+    
+    return render_template('reels.html', reels=reels)
+
+
 @views.route('/update_profile_picture', methods=['POST'])
 @login_required
 def update_profile_picture():
     if 'profile_picture' not in request.files:
-        flash('No file part')
+        flash('No file part', 'error')
         return redirect(url_for('views.profile'))
 
     file = request.files['profile_picture']
     if file.filename == '':
-        flash('No selected file')
+        flash('No selected file', 'error')
         return redirect(url_for('views.profile'))
 
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        file_path = os.path.join('app/static/profile_pics', filename)
-        file.save(file_path)
-
-        current_user.profile_picture = filename  # Assuming you have this field
-        db.session.commit()
-        flash('Profile picture updated!')
+        try:
+            # Generate a unique filename to avoid duplicates
+            filename = secure_filename(file.filename)
+            unique_filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
+            
+            # Make sure the directory exists
+            profile_pic_dir = os.path.join(os.getcwd(), 'app', 'static', 'profile_pics')
+            if not os.path.exists(profile_pic_dir):
+                os.makedirs(profile_pic_dir)
+            
+            # Save the file with full path
+            file_path = os.path.join(profile_pic_dir, unique_filename)
+            file.save(file_path)
+            
+            # Save just the filename in the user profile
+            current_user.profile_picture = unique_filename
+            db.session.commit()
+            
+            flash('Profile picture updated successfully!', 'success')
+        except Exception as e:
+            flash(f'Error updating profile picture: {str(e)}', 'error')
     else:
-        flash('Invalid file format.')
+        flash('Invalid file format. Please use JPG, PNG, or GIF files.', 'error')
 
     return redirect(url_for('views.profile'))
 
 
-
-
+@views.route('/user/<username>')
+@login_required
+def user_profile(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    posts = Post.query.filter_by(user_id=user.id).order_by(Post.timestamp.desc()).all()
+    
+    # Check if the current user is following this user
+    is_following = False
+    if current_user.is_authenticated:
+        is_following = current_user.is_following(user) if hasattr(current_user, 'is_following') else False
+    
+    return render_template('profile.html', user=user, posts=posts, is_following=is_following)

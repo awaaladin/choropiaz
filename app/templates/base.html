@@ -229,6 +229,153 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 });
     </script>
+    <script>
+        /**
+ * Main JavaScript for AJAX functionality for likes and follows
+ * This script should be included in your base template
+ */
+
+// Wait for DOM to load
+document.addEventListener('DOMContentLoaded', function() {
+    // Get CSRF token from meta tag
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    // ---------- LIKE FUNCTIONALITY ----------
+    // Add event listeners to all like buttons
+    document.querySelectorAll('.like-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const postId = this.getAttribute('data-post-id');
+            const likeCount = document.querySelector(`.like-count-${postId}`);
+            const likeIcon = this.querySelector('i');
+            
+            // Send AJAX request
+            fetch(`/like/${postId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update the like count
+                likeCount.textContent = data.likes_count;
+                
+                // Toggle the like button appearance
+                if (data.liked) {
+                    likeIcon.classList.remove('far');
+                    likeIcon.classList.add('fas');
+                    likeIcon.style.color = '#e74c3c'; // Red for liked
+                } else {
+                    likeIcon.classList.remove('fas');
+                    likeIcon.classList.add('far');
+                    likeIcon.style.color = '#777'; // Gray for not liked
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+    
+    // ---------- FOLLOW FUNCTIONALITY ----------
+    // Add event listeners to all follow buttons
+    document.querySelectorAll('.follow-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const userId = this.getAttribute('data-user-id');
+            
+            // Send AJAX request
+            fetch(`/follow/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Toggle the follow button text and appearance
+                if (data.following) {
+                    this.textContent = 'Following';
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-secondary');
+                } else {
+                    this.textContent = 'Follow';
+                    this.classList.remove('btn-secondary');
+                    this.classList.add('btn-primary');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+    
+    // ---------- REEL FUNCTIONALITY ----------
+    // Handle reel video playing
+    const reelVideos = document.querySelectorAll('.reel-video');
+    
+    // Function to handle intersection observer
+    const handleIntersection = (entries, observer) => {
+        entries.forEach(entry => {
+            // If the video is in view
+            if (entry.isIntersecting) {
+                const video = entry.target;
+                video.play().catch(e => console.error('Error playing video:', e));
+                
+                // Pause other videos
+                reelVideos.forEach(v => {
+                    if (v !== video && !v.paused) {
+                        v.pause();
+                    }
+                });
+            } else {
+                // Pause if not in view
+                entry.target.pause();
+            }
+        });
+    };
+    
+    // Set up intersection observer for each video
+    if (reelVideos.length > 0) {
+        const observer = new IntersectionObserver(handleIntersection, {
+            threshold: 0.5 // 50% of the video must be visible
+        });
+        
+        reelVideos.forEach(video => {
+            observer.observe(video);
+            
+            // Add manual play/pause on click
+            video.addEventListener('click', function() {
+                if (this.paused) {
+                    this.play();
+                } else {
+                    this.pause();
+                }
+            });
+        });
+    }
+    
+    // ---------- PROFILE PICTURE UPLOAD ----------
+    // Preview image before upload
+    const profilePictureInput = document.querySelector('#profile_picture');
+    const profilePicturePreview = document.querySelector('#profile-picture-preview');
+    
+    if (profilePictureInput && profilePicturePreview) {
+        profilePictureInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    profilePicturePreview.src = e.target.result;
+                    profilePicturePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});
+    </script>
     
     <!-- Theme script (link to your new script) -->
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
