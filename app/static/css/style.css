@@ -10,7 +10,7 @@ body {
 /* Remove this problematic mobile padding */
 @media (max-width: 768px) {
   body {
-      padding-top: 0; /* Was 250px which is excessive */
+    padding-top: 0;
   }
 }
 
@@ -29,7 +29,7 @@ nav {
 }
 
 .nav-icon-link:hover i {
-  color: var(--primary-color); /* choropia-blue */
+  color: var(--primary-color);
   transform: scale(1.05);
 }
 
@@ -147,8 +147,8 @@ button:hover {
 /* Only sticky on wide screens */
 @media (min-width: 769px) {
   .sidebar {
-      position: sticky;
-      top: 20px;
+    position: sticky;
+    top: 20px;
   }
 }
 
@@ -310,27 +310,27 @@ button:hover {
 /* Responsive Sidebar and Layout */
 @media (max-width: 768px) {
   .feed-container {
-      flex-direction: column;
-      padding: 15px;
+    flex-direction: column;
+    padding: 15px;
   }
 
   .sidebar {
-      display: none;
+    display: none;
   }
 
   .nav-card {
-      width: 100%;
-      border-radius: 0;
-      box-shadow: none;
+    width: 100%;
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .post-card {
-      padding: 15px;
+    padding: 15px;
   }
 }
 
 .modal {
-  z-index: 1050; 
+  z-index: 1050;
 }
 
 .nav-card {
@@ -339,15 +339,15 @@ button:hover {
 
 @media screen and (max-width: 768px) {
   .feed-container {
-      flex-direction: column;
+    flex-direction: column;
   }
 
   .sidebar {
-      display: none;
+    display: none;
   }
 
   .post-card {
-      width: 100%;
+    width: 100%;
   }
 }
 
@@ -439,221 +439,204 @@ button:hover {
 
 /* Global theme variables */
 :root {
-/* Light theme (default) */
---primary-color: #1877f2;
---secondary-color: #42b72a;
---bg-color: #f0f2f5;
---content-bg: #ffffff;
---nav-bg: #ffffff;
---text-color: #1c1e21;
---text-secondary: #65676b;
---border-color: #dddfe2;
---hover-bg: #e7f3ff;
---btn-border: #dddfe2;
---input-bg: #ffffff;
---input-border: #ccd0d5;
---card-bg: #ffffff;
---shadow-color: rgba(0, 0, 0, 0.1);
---icon-color: #65676b;
---icon-active: #1877f2;
+  --primary-color: #1877f2;
+  --secondary-color: #42b72a;
+  --bg-color: #f0f2f5;
+  --content-bg: #ffffff;
+  --nav-bg: #ffffff;
+  --text-color: #1c1e21;
+  --text-secondary: #65676b;
+  --border-color: #dddfe2;
+  --hover-bg: #e7f3ff;
+  --btn-border: #dddfe2;
+  --input-bg: #ffffff;
+  --input-border: #ccd0d5;
+  --card-bg: #ffffff;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --icon-color: #65676b;
+  --icon-active: #1877f2;
 }
 
 /* Dark mode variables - GitHub-like dark theme */
 [data-theme="dark"] {
---primary-color: #58a6ff;
---secondary-color: #2ea043;
---bg-color: #0d1117;
---content-bg: #161b22;
---nav-bg: #161b22;
---text-color: #c9d1d9;
---text-secondary: #8b949e;
---border-color: #30363d;
---hover-bg: #1f2937;
---btn-border: #30363d;
---input-bg: #0d1117;
---input-border: #30363d;
---card-bg: #21262d;
---shadow-color: rgba(0, 0, 0, 0.3);
---icon-color: #8b949e;
---icon-active: #58a6ff;
+  --primary-color: #58a6ff;
+  --secondary-color: #2ea043;
+  --bg-color: #0d1117;
+  --content-bg: #161b22;
+  --nav-bg: #161b22;
+  --text-color: #c9d1d9;
+  --text-secondary: #8b949e;
+  --border-color: #30363d;
+  --hover-bg: #1f2937;
+  --btn-border: #30363d;
+  --input-bg: #0d1117;
+  --input-border: #30363d;
+  --card-bg: #21262d;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --icon-color: #8b949e;
+  --icon-active: #58a6ff;
 }
 
 /* Apply theme to core elements */
 body {
-background-color: var(--bg-color);
-color: var(--text-color);
-transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 nav {
-background-color: var(--nav-bg) !important;
-border-bottom: 1px solid var(--border-color);
-box-shadow: 0 1px 3px var(--shadow-color) !important;
+  background-color: var(--nav-bg) !important;
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px var(--shadow-color) !important;
 }
 
-/* Make sure these Tailwind classes use our theme variables */
 .bg-white {
-background-color: var(--content-bg) !important;
+  background-color: var(--content-bg) !important;
 }
 
 .text-choropia-secondary {
-color: var(--text-secondary) !important;
+  color: var(--text-secondary) !important;
 }
 
 .text-choropia-text {
-color: var(--text-color) !important;
+  color: var(--text-color) !important;
 }
 
 .bg-choropia-gray {
-background-color: var(--bg-color) !important;
+  background-color: var(--bg-color) !important;
 }
 
-/* Ensure mobile bottom nav also respects dark mode */
 .md\:hidden.fixed.bottom-0 {
-background-color: var(--nav-bg) !important;
-border-color: var(--border-color) !important;
+  background-color: var(--nav-bg) !important;
+  border-color: var(--border-color) !important;
 }
 
 input, select, textarea {
-background-color: var(--input-bg) !important;
-border-color: var(--input-border) !important;
-color: var(--text-color) !important;
+  background-color: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+  color: var(--text-color) !important;
 }
 
 .shadow-md, .shadow-lg {
-box-shadow: 0 4px 6px var(--shadow-color) !important;
+  box-shadow: 0 4px 6px var(--shadow-color) !important;
 }
 
-/* Cards & Containers */
 .card, .post-card {
-background-color: var(--card-bg);
-border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
 }
 
-/* Navigation icons & buttons */
 .nav-icon-link i {
-color: var(--icon-color);
+  color: var(--icon-color);
 }
 
 .nav-icon-link.active i {
-color: var(--icon-active);
+  color: var(--icon-active);
 }
 
 .nav-icon-link .group-hover\:bg-choropia-gray:hover {
-background-color: var(--hover-bg) !important;
+  background-color: var(--hover-bg) !important;
 }
 
-/* Mobile bottom nav */
 .border-t {
-border-color: var(--border-color) !important;
+  border-color: var(--border-color) !important;
 }
 
-/* Settings specific */
 .settings-container {
-background-color: var(--content-bg);
-box-shadow: 0 2px 4px var(--shadow-color);
-color: var(--text-color);
+  background-color: var(--content-bg);
+  box-shadow: 0 2px 4px var(--shadow-color);
+  color: var(--text-color);
 }
 
 .settings-navigation {
-background-color: var(--nav-bg);
-border-right: 1px solid var(--border-color);
+  background-color: var(--nav-bg);
+  border-right: 1px solid var(--border-color);
 }
 
 .settings-header h1 {
-color: var(--primary-color);
+  color: var(--primary-color);
 }
 
 .settings-menu a {
-color: var(--text-color);
+  color: var(--text-color);
 }
 
 .settings-menu a i {
-color: var(--primary-color);
+  color: var(--primary-color);
 }
 
 .settings-menu li.active a {
-background-color: var(--hover-bg);
-color: var(--primary-color);
+  background-color: var(--hover-bg);
+  color: var(--primary-color);
 }
 
 .section-header {
-border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .section-header p {
-color: var(--text-secondary);
+  color: var(--text-secondary);
 }
 
-/* Buttons */
 .btn-help {
-background-color: transparent;
-border: 1px solid var(--btn-border);
-color: var(--text-color);
+  background-color: transparent;
+  border: 1px solid var(--btn-border);
+  color: var(--text-color);
 }
 
 .upload-btn {
-background-color: var(--primary-color);
+  background-color: var(--primary-color);
 }
 
-/* Active navigation indicator */
 .nav-icon-link.active::after {
-background-color: var(--primary-color);
+  background-color: var(--primary-color);
 }
 
-/* Flash messages */
 .bg-red-100 {
-background-color: rgba(248, 113, 113, 0.2) !important;
+  background-color: rgba(248, 113, 113, 0.2) !important;
 }
 
 .bg-green-100 {
-background-color: rgba(34, 197, 94, 0.2) !important;
+  background-color: rgba(34, 197, 94, 0.2) !important;
 }
 
 .bg-blue-100 {
-background-color: rgba(59, 130, 246, 0.2) !important;
+  background-color: rgba(59, 130, 246, 0.2) !important;
 }
 
 .text-red-700 {
-color: #ef4444 !important;
+  color: #ef4444 !important;
 }
 
 .text-green-700 {
-color: #15803d !important;
+  color: #15803d !important;
 }
 
 .text-blue-700 {
-color: #1d4ed8 !important;
+  color: #1d4ed8 !important;
 }
 
-/* Dark mode adjustments for specific components */
 [data-theme="dark"] .hover\:bg-gray-200:hover {
-background-color: var(--hover-bg) !important;
+  background-color: var(--hover-bg) !important;
 }
 
 [data-theme="dark"] .border-white {
-border-color: var(--border-color) !important;
+  border-color: var(--border-color) !important;
 }
 
-/* Transitions for smooth theme switching */
 * {
-transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
-/* Add these styles to your style.css file */
 
 /* Small phone media queries (320px-425px) */
 @media screen and (max-width: 425px) {
-  /* General layout adjustments */
   body {
-    padding-bottom: 60px;  /* Space for the mobile navigation */
+    padding-bottom: 60px;
   }
-  
   .container {
     padding: 10px;
     margin: 15px auto;
   }
-  
-  /* Convert sidebar to horizontal navigation for small screens */
   .sidebar {
     display: block !important;
     width: 100%;
@@ -664,7 +647,6 @@ transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease,
     position: relative;
     top: 0;
   }
-  
   .sidebar ul {
     display: flex;
     flex-direction: row;
@@ -673,59 +655,43 @@ transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease,
     overflow-x: auto;
     padding: 5px 0;
   }
-  
   .sidebar li {
     margin: 0 10px;
     white-space: nowrap;
   }
-  
-  /* Adjust feed container for small screens */
   .feed-container {
     flex-direction: column;
     padding: 0;
   }
-  
-  /* Adjust post cards for small screens */
   .post-card {
     border-radius: 8px;
     margin-bottom: 15px;
     padding: 12px;
   }
-  
-  /* Smaller text and elements for small screens */
   .post-caption {
     font-size: 14px;
   }
-  
-  /* Adjust mobile navigation */
   .md\\:hidden.fixed.bottom-0 .flex {
     flex-direction: row;
     justify-content: space-around;
   }
-  
-  /* Ensure buttons are appropriately sized */
   button, .btn {
     padding: 8px 16px;
     font-size: 14px;
   }
-  
-  /* Flash messages adjustment */
   .container.mx-auto.px-4.pt-20 {
     padding-top: 60px;
   }
-  
-  /* Post creation form adjustments */
   .create-post-form {
     padding: 12px;
   }
-  
   .create-post-form textarea {
     height: 80px;
   }
 }
 
 /* Media object fixes */
-.post-media img, 
+.post-media img,
 .post-media video {
   max-height: 500px;
   width: 100%;
@@ -733,10 +699,42 @@ transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease,
   background: #000;
 }
 
-/* Ensure videos are playable */
 video {
   width: 100%;
   height: auto;
   background-color: #000;
   cursor: pointer;
+}
+@media screen and (min-width: 320px) and (max-width: 425px) {
+  .md\:w-1\/4,
+  .lg\:w-1\/5,
+  .sidebar,
+  .bg-gray-100.min-h-screen .container.mx-auto.px-4.py-6 .flex.flex-col.md\:flex-row.gap-4 > div:first-child {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    position: absolute !important;
+    z-index: -9999 !important;
+    pointer-events: none !important;
+    clip: rect(0, 0, 0, 0) !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: 0 !important;
+  }
+  .md\:w-3\/4,
+  .lg\:w-4\/5,
+  .bg-gray-100.min-h-screen .container.mx-auto.px-4.py-6 .flex.flex-col.md\:flex-row.gap-4 > div:last-child {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex-basis: 100% !important;
+  }
+  .sticky.top-4 {
+    position: static !important;
+  }
+  .container.mx-auto.px-4.py-6 .flex.flex-col.md\:flex-row.gap-4 {
+    flex-direction: column !important;
+  }
 }
