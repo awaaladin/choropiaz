@@ -1,5 +1,3 @@
-# app/__init__.py
-
 from flask import Flask
 from app.extensions import db, socketio, csrf, oauth
 
