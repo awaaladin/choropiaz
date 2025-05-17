@@ -47,7 +47,7 @@ def save_media_file(file_obj):
         os.makedirs(uploads_dir)
     file_path = os.path.join(uploads_dir, filename)
     file_obj.save(file_path)
-    return os.path.join(UPLOAD_FOLDER, filename)
+    return os.path.join(UPLOAD_FOLDER, filename).replace("\\", "/")
 
 def save_picture(form_picture):
     random_hex = os.urandom(8).hex()
