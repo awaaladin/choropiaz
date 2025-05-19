@@ -7,16 +7,27 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-            Back to Messages
+            
         </a>
     </div>
-    
     <div class="bg-white rounded-lg shadow overflow-hidden">
         <div class="p-4 bg-gray-100 border-b border-gray-200">
             <h2 class="text-lg font-semibold">New Conversation</h2>
         </div>
-        
         <div class="p-4">
+            <!-- User search input with search button -->
+            <div class="mb-4 relative">
+                <label for="userSearch" class="block text-gray-700 mb-2">Search user:</label>
+                <div class="flex">
+                    <input type="text" id="userSearch" class="w-full border border-gray-300 rounded-l px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Type to search users...">
+                    <button type="button" id="searchBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-3 rounded-r flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4-4m0 0A7 7 0 104 4a7 7 0 0013 13z" />
+                        </svg>
+                    </button>
+                </div>
+                <ul id="userSuggestions" class="absolute z-10 bg-white border border-gray-300 w-full mt-1 rounded shadow-lg hidden"></ul>
+            </div>
             <form action="{{ url_for('messages.create_conversation') }}" method="POST">
                 <div class="mb-4">
                     <label for="recipient_id" class="block text-gray-700 mb-2">Select a recipient:</label>
@@ -27,14 +38,12 @@
                         {% endfor %}
                     </select>
                 </div>
-                
                 <div class="mb-4">
                     <label for="message" class="block text-gray-700 mb-2">Message:</label>
                     <textarea name="message" id="message" rows="4" 
                               class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
                               placeholder="Type your message here..." required></textarea>
                 </div>
-                
                 <div class="flex justify-end">
                     <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
                         Send Message
@@ -44,4 +53,71 @@
         </div>
     </div>
 </div>
+<script>
+const userSearch = document.getElementById('userSearch');
+const searchBtn = document.getElementById('searchBtn');
+const suggestions = document.getElementById('userSuggestions');
+const recipientSelect = document.getElementById('recipient_id');
+
+// Show suggestions when typing or clicking search
+function fetchSuggestions() {
+    const query = userSearch.value.trim();
+    if (!query) {
+        suggestions.innerHTML = '';
+        suggestions.classList.add('hidden');
+        return;
+    }
+    fetch(`/search-users?q=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(users => {
+            suggestions.innerHTML = '';
+            if (users.length === 0) {
+                suggestions.classList.add('hidden');
+                return;
+            }
+            users.forEach(user => {
+                const li = document.createElement('li');
+                li.textContent = user.username;
+                li.className = "px-4 py-2 hover:bg-blue-100 cursor-pointer";
+                li.onclick = () => {
+                    // Set the select to this user
+                    let found = false;
+                    for (let option of recipientSelect.options) {
+                        if (option.value == user.id) {
+                            recipientSelect.value = user.id;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        // If not in select, add it
+                        const opt = document.createElement('option');
+                        opt.value = user.id;
+                        opt.textContent = user.username;
+                        recipientSelect.appendChild(opt);
+                        recipientSelect.value = user.id;
+                    }
+                    suggestions.innerHTML = '';
+                    suggestions.classList.add('hidden');
+                    userSearch.value = user.username;
+                };
+                suggestions.appendChild(li);
+            });
+            suggestions.classList.remove('hidden');
+        });
+}
+
+userSearch.addEventListener('input', () => {
+    // Optionally, fetch on every input or only on button click
+    // fetchSuggestions();
+});
+searchBtn.addEventListener('click', fetchSuggestions);
+
+// Hide suggestions when clicking outside
+document.addEventListener('click', function(e) {
+    if (!suggestions.contains(e.target) && e.target !== userSearch && e.target !== searchBtn) {
+        suggestions.classList.add('hidden');
+    }
+});
+</script>
 {% endblock %}
