@@ -14,7 +14,7 @@ def inbox():
         'messages.html',
         conversations=conversations,
         unread_count=current_user.get_unread_message_count(),
-        ConversationParticipant=ConversationParticipant  
+        ConversationParticipant=ConversationParticipant
     )
 
 @messages.route('/conversation/<int:conversation_id>', methods=['GET'])
@@ -72,8 +72,8 @@ def send_message(conversation_id):
 @messages.route('/new-conversation', methods=['GET'])
 @login_required
 def new_conversation_form():
-    users = User.query.filter(User.id != current_user.id).all()
-    return render_template('new_conversation.html', users=users) 
+    users = User.query.filter(User.id != current_user.id).limit(20).all()  # Show first 20 by default
+    return render_template('new_conversation.html', users=users)
 
 @messages.route('/new-conversation', methods=['POST'])
 @login_required
@@ -115,6 +115,21 @@ def create_conversation():
     db.session.add(message)
     db.session.commit()
     return redirect(url_for('messages.view_conversation', conversation_id=conversation.id))
+
+@messages.route('/search-users')
+@login_required
+def search_users():
+    q = request.args.get('q', '').strip()
+    if not q:
+        return jsonify([])
+    users = User.query.filter(
+        User.id != current_user.id,
+        User.username.ilike(f'%{q}%')
+    ).limit(20).all()
+    return jsonify([
+        {'id': user.id, 'username': user.username}
+        for user in users
+    ])
 
 @messages.route('/conversation/<int:conversation_id>/mark-read', methods=['POST'])
 @login_required
