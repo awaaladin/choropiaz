@@ -57,7 +57,7 @@
                     </div>
                 </div>
 
-                <!-- Main Navigation -->
+               <!-- Main Navigation -->
                 <div class="hidden md:flex items-center space-x-1">
                     {% if current_user.is_authenticated %}
                         <a href="{{ url_for('views.home') }}" class="nav-icon-link group">
@@ -70,9 +70,17 @@
                                 <i class="bi bi-camera-reels text-2xl"></i>
                             </div>
                         </a>
-                        <a href="#" class="nav-icon-link group">
-                            <div class="p-2 mx-2 rounded-lg group-hover:bg-choropia-gray">
-                                <i class="bi bi-shop text-2xl"></i>
+                        
+                        </a>
+                        <!-- MESSAGES LINK WITH UNREAD BADGE -->
+                        <a href="{{ url_for('messages.inbox') }}" class="nav-icon-link group relative">
+                            <div class="p-2 mx-2 rounded-lg group-hover:bg-choropia-gray flex items-center">
+                                <i class="bi bi-chat-dots text-2xl"></i>
+                                {% if current_user.get_unread_message_count() > 0 %}
+                                    <span class="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                        {{ current_user.get_unread_message_count() }}
+                                    </span>
+                                {% endif %}
                             </div>
                         </a>
                         <a href="{{ url_for('views.profile') }}" class="nav-icon-link group">
@@ -141,8 +149,15 @@
                 <a href="{{ url_for('views.reels') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
                     <i class="bi bi-camera-reels text-xl"></i>
                 </a>
-                <a href="#" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
-                    <i class="bi bi-shop text-xl"></i>
+                
+                <!-- MESSAGES LINK WITH UNREAD BADGE FOR MOBILE -->
+                <a href="{{ url_for('messages.inbox') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue relative">
+                    <i class="bi bi-chat-dots text-xl"></i>
+                    {% if current_user.get_unread_message_count() > 0 %}
+                        <span class="absolute top-1 left-5 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {{ current_user.get_unread_message_count() }}
+                        </span>
+                    {% endif %}
                 </a>
                 <a href="{{ url_for('views.profile') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
                     <i class="bi bi-person-circle text-xl"></i>

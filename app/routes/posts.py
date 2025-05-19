@@ -3,13 +3,14 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash
 from datetime import datetime, timedelta
+from sqlalchemy import or_, and_, desc
 import os
-from app import db
-from app.models.models import Post, Comment, Like, User, Category
+import json
+from app.extensions import db
+from flask_mail import Message
+from app.models.models import Post, Comment, Like, User, Category, Notification
 from app.forms import PostForm, ProfileForm, RegisterForm, SettingsForm, UpdateProfileForm, ReelForm
 from PIL import Image
-
-views = Blueprint('views', __name__)
 
 # --- Constants ---
 UPLOAD_FOLDER = os.path.join("static", "uploads")
@@ -111,6 +112,8 @@ def load_feed_data():
 
 # --- FEED ROUTES ---
 
+views = Blueprint('views', __name__)
+
 @views.route('/', methods=['GET'])
 @login_required
 def home():
@@ -171,12 +174,14 @@ def create_post():
     try:
         db.session.add(new_post)
         db.session.commit()
+        # Process mentions for notifications
+        process_mentions(caption, new_post.id, current_user.id)
         return jsonify({'success': True, 'message': 'Post created!'})
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
 
-@views.route('/like/<int:post_id>', methods=['POST'])
+@views.route('/like/<int:post_id>', methods=['POST','GET'])
 @login_required
 def like_post(post_id):
     post = Post.query.get_or_404(post_id)
@@ -188,6 +193,14 @@ def like_post(post_id):
     else:
         db.session.add(Like(user_id=current_user.id, post_id=post_id))
         db.session.commit()
+        # Send notification to post owner
+        if post.user_id != current_user.id:
+            send_notification(
+                recipient_id=post.user_id,
+                type='like',
+                sender_id=current_user.id,
+                post_id=post.id
+            )
         return jsonify({'liked': True, 'likes_count': len(post.likes)})
 
 @views.route('/follow/<int:user_id>', methods=['POST'])
@@ -202,16 +215,33 @@ def follow_user(user_id):
         else:
             current_user.follow(user)
             is_following = True
+            # Send notification to followed user
+            send_notification(
+                recipient_id=user.id,
+                type='follow',
+                sender_id=current_user.id
+            )
         db.session.commit()
     return jsonify({'following': is_following})
 
-@views.route('/comment/<int:post_id>', methods=['POST'])
+@views.route('/comment/<int:post_id>', methods=['POST','GET'])
 @login_required
 def comment_post(post_id):
     content = request.form.get('comment_content')
     if content:
         db.session.add(Comment(content=content, user_id=current_user.id, post_id=post_id))
         db.session.commit()
+        # Send notification to post owner
+        post = Post.query.get(post_id)
+        if post and post.user_id != current_user.id:
+            send_notification(
+                recipient_id=post.user_id,
+                type='comment',
+                sender_id=current_user.id,
+                post_id=post.id
+            )
+        # Process mentions in comment
+        process_mentions(content, post_id, current_user.id)
     return redirect(url_for('views.feed'))
 
 @views.route('/delete_post/<int:post_id>', methods=['POST'])
@@ -241,7 +271,7 @@ def delete_post(post_id):
 
 # --- REELS ROUTES ---
 
-@views.route('/reels/<int:reel_id>/like', methods=['POST'])
+@views.route('/reels/<int:reel_id>/like', methods=['POST','GET'])
 @login_required
 def like_reel(reel_id):
     reel = Post.query.get_or_404(reel_id)
@@ -254,6 +284,14 @@ def like_reel(reel_id):
         new_like = Like(user_id=current_user.id, post_id=reel_id)
         db.session.add(new_like)
         db.session.commit()
+        # Send notification to reel owner
+        if reel.user_id != current_user.id:
+            send_notification(
+                recipient_id=reel.user_id,
+                type='like',
+                sender_id=current_user.id,
+                post_id=reel.id
+            )
         return jsonify({'liked': True, 'likes_count': len(reel.likes)})
 
 @views.route('/create_reel', methods=['GET', 'POST'])
@@ -383,3 +421,235 @@ def settings():
         flash('Settings updated!', 'success')
         return redirect(url_for('views.settings'))
     return render_template('settings.html', form=form, user_data=user_data)
+
+# --- NOTIFICATIONS ROUTES ---
+
+notifications = Blueprint('notifications', __name__)
+
+NOTIFICATION_TYPES = {
+    'like': 'liked your post',
+    'comment': 'commented on your post',
+    'follow': 'started following you',
+    'mention': 'mentioned you in a post',
+    'system': 'system notification',
+    'welcome': 'welcome notification'
+}
+
+@notifications.route('/notifications')
+@login_required
+def view_notifications():
+    all_notifications = Notification.query.filter_by(
+        recipient_id=current_user.id
+    ).order_by(desc(Notification.timestamp)).all()
+    mentions_notifications = [n for n in all_notifications if n.type == 'mention']
+    activity_notifications = [n for n in all_notifications if n.type in ['like', 'comment', 'follow']]
+    for notification in all_notifications:
+        if not notification.is_seen:
+            notification.is_seen = True
+    db.session.commit()
+    return render_template('notification.html',
+                          notifications=all_notifications,
+                          mentions_notifications=mentions_notifications,
+                          activity_notifications=activity_notifications)
+
+@notifications.route('/mark_notification_read/<int:notification_id>', methods=['POST'])
+@login_required
+def mark_notification_read(notification_id):
+    notification = Notification.query.get_or_404(notification_id)
+    if notification.recipient_id != current_user.id:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+    notification.is_read = True
+    db.session.commit()
+    return jsonify({'success': True})
+
+@notifications.route('/mark_all_read', methods=['POST'])
+@login_required
+def mark_all_read():
+    notifications_q = Notification.query.filter_by(
+        recipient_id=current_user.id,
+        is_read=False
+    ).all()
+    for notification in notifications_q:
+        notification.is_read = True
+    db.session.commit()
+    return jsonify({'success': True})
+
+@notifications.route('/notification_count')
+@login_required
+def get_notification_count():
+    count = Notification.query.filter_by(
+        recipient_id=current_user.id,
+        is_read=False
+    ).count()
+    return jsonify({'count': count})
+
+def send_notification(recipient_id, type, sender_id=None, post_id=None, comment_id=None, preview_text=None):
+    if sender_id == recipient_id:
+        return None
+    message = NOTIFICATION_TYPES.get(type, '')
+    link = None
+    if post_id:
+        link = f"/post/{post_id}"
+    elif type == 'follow' and sender_id:
+        link = f"/user/{User.query.get(sender_id).username}"
+    notification = Notification(
+        recipient_id=recipient_id,
+        sender_id=sender_id,
+        type=type,
+        message=message,
+        post_id=post_id,
+        comment_id=comment_id,
+        preview_text=preview_text,
+        link=link,
+        timestamp=datetime.utcnow(),
+        is_read=False,
+        is_seen=False
+    )
+    db.session.add(notification)
+    db.session.commit()
+    recipient = User.query.get(recipient_id)
+    if recipient and getattr(recipient, 'notification_preferences', {}).get('email', False):
+        send_email_notification(notification)
+    return notification
+
+def send_email_notification(notification):
+    recipient = User.query.get(notification.recipient_id)
+    if not recipient or not recipient.email:
+        return
+    sender = User.query.get(notification.sender_id) if notification.sender_id else None
+    sender_name = sender.username if sender else 'System'
+    subject = f"New notification from YourApp"
+    body = f"Hello {recipient.username},\n\n"
+    if notification.type == 'like':
+        post = Post.query.get(notification.post_id)
+        body += f"{sender_name} liked your post: '{post.content[:50]}...'\n"
+    elif notification.type == 'comment':
+        post = Post.query.get(notification.post_id)
+        body += f"{sender_name} commented on your post: '{post.content[:50]}...'\n"
+    elif notification.type == 'follow':
+        body += f"{sender_name} started following you.\n"
+    elif notification.type == 'mention':
+        body += f"{sender_name} mentioned you in a post: '{notification.preview_text}'\n"
+    else:
+        body += f"{notification.message}\n"
+    body += f"\nCheck it out: http://yourdomain.com{notification.link}" if notification.link else ""
+    body += "\n\nBest regards,\nYourApp Team"
+    try:
+        msg = Message(
+            subject=subject,
+            sender='noreply@yourdomain.com',
+            recipients=[recipient.email]
+        )
+        msg.body = body
+        mail.send(msg)
+    except Exception as e:
+        print(f"Failed to send email notification: {str(e)}")
+
+def process_mentions(content, post_id, sender_id):
+    if not content:
+        return
+    words = content.split()
+    for word in words:
+        if word.startswith('@'):
+            username = word[1:].strip(".,!?;:")
+            mentioned_user = User.query.filter_by(username=username).first()
+            if mentioned_user:
+                send_notification(
+                    recipient_id=mentioned_user.id,
+                    type='mention',
+                    sender_id=sender_id,
+                    post_id=post_id,
+                    preview_text=content[:100] + '...' if len(content) > 100 else content
+                )
+
+def notification_exists(recipient_id, type, sender_id=None, post_id=None, timeframe_seconds=60):
+    time_threshold = datetime.utcnow() - timedelta(seconds=timeframe_seconds)
+    query_filters = [
+        Notification.recipient_id == recipient_id,
+        Notification.type == type,
+        Notification.timestamp > time_threshold
+    ]
+    if sender_id:
+        query_filters.append(Notification.sender_id == sender_id)
+    if post_id:
+        query_filters.append(Notification.post_id == post_id)
+    return Notification.query.filter(and_(*query_filters)).first() is not None
+
+def get_user_notification_preferences(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return {}
+    default_prefs = {
+        'app': True,
+        'email': False,
+        'likes': True,
+        'comments': True,
+        'follows': True,
+        'mentions': True
+    }
+    if hasattr(user, 'notification_preferences') and user.notification_preferences:
+        if isinstance(user.notification_preferences, str):
+            try:
+                user_prefs = json.loads(user.notification_preferences)
+            except:
+                user_prefs = {}
+        else:
+            user_prefs = user.notification_preferences
+        default_prefs.update(user_prefs)
+    return default_prefs
+
+@notifications.route('/notification_preferences', methods=['GET', 'POST'])
+@login_required
+def notification_preferences():
+    if request.method == 'POST':
+        prefs = {
+            'app': 'app_notifications' in request.form,
+            'email': 'email_notifications' in request.form,
+            'likes': 'like_notifications' in request.form,
+            'comments': 'comment_notifications' in request.form,
+            'follows': 'follow_notifications' in request.form,
+            'mentions': 'mention_notifications' in request.form
+        }
+        current_user.notification_preferences = json.dumps(prefs)
+        db.session.commit()
+        return redirect(url_for('notifications.notification_preferences'))
+    prefs = get_user_notification_preferences(current_user.id)
+    return render_template('notification_preferences.html', preferences=prefs)
+
+@notifications.route('/clear_notifications', methods=['POST'])
+@login_required
+def clear_notifications():
+    Notification.query.filter_by(recipient_id=current_user.id).delete()
+    db.session.commit()
+    return jsonify({'success': True})
+
+@notifications.route('/api/notifications/poll', methods=['GET'])
+@login_required
+def poll_notifications():
+    since = request.args.get('since')
+    if since:
+        try:
+            since_time = datetime.fromisoformat(since)
+        except ValueError:
+            since_time = datetime.utcnow() - timedelta(minutes=5)
+    else:
+        since_time = datetime.utcnow() - timedelta(minutes=5)
+    new_notifications = Notification.query.filter(
+        Notification.recipient_id == current_user.id,
+        Notification.timestamp > since_time
+    ).order_by(desc(Notification.timestamp)).all()
+    result = []
+    for notification in new_notifications:
+        sender = User.query.get(notification.sender_id) if notification.sender_id else None
+        result.append({
+            'id': notification.id,
+            'sender_id': notification.sender_id,
+            'sender_name': sender.username if sender else 'System',
+            'sender_avatar': url_for('static', filename=f'profile_pics/{sender.profile_picture}') if sender else None,
+            'type': notification.type,
+            'message': notification.message,
+            'preview_text': notification.preview_text,
+            'link': notification.link,
+            'timestamp': notification.timestamp.isoformat()
+        })
+    return jsonify(result)

@@ -3,11 +3,9 @@
 {% block content %}
 <div class="bg-gradient-to-b from-gray-900 to-blue-900 min-h-screen text-white">
   <div class="container mx-auto px-4 py-6">
-    <!-- Main Layout with Sidebar + Feed -->
     <div class="flex flex-col md:flex-row gap-4">
-      
-      <!-- Left Sidebar -->
-      <div class="w-full md:w-1/4 lg:w-1/5">
+      <!-- Left Sidebar (Desktop) -->
+      <div class="w-full md:w-1/4 lg:w-1/5 hidden md:block">
         <div class="bg-gray-800 rounded-xl shadow-lg p-4 sticky top-4 border border-gray-700">
           <div class="space-y-1">
             <a href="{{ url_for('views.home') }}" class="flex items-center p-3 rounded-lg hover:bg-blue-800 transition">
@@ -25,10 +23,8 @@
           </div>
         </div>
       </div>
-      
       <!-- Main Content Area -->
       <div class="w-full md:w-3/4 lg:w-4/5 space-y-4">
-        
         <!-- Create Post Card -->
         <div class="bg-gray-800 rounded-xl shadow-lg p-4 border border-gray-700">
           <h2 class="text-xl font-bold mb-4">Create a New Post</h2>
@@ -39,7 +35,6 @@
               </a>
               <textarea name="caption" placeholder="What are you offering today?" class="w-full p-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required></textarea>
             </div>
-            
             <div class="flex flex-col md:flex-row gap-3">
               <select name="category" class="bg-gray-700 text-white p-3 rounded-lg border border-gray-600" required>
                 <option value="">Select Category</option>
@@ -47,29 +42,23 @@
                 <option value="services">🛠️ Services</option>
                 <option value="info">ℹ️ Info</option>
               </select>
-              
               <div class="flex items-center gap-2 flex-wrap flex-1">
                 <label class="flex items-center bg-gray-700 hover:bg-gray-600 py-2 px-4 rounded-lg cursor-pointer transition">
                   <span class="text-lg mr-2">🖼️</span>
                   <span>Photo</span>
                   <input type="file" name="image" accept="image/*" class="hidden">
                 </label>
-                
                 <label class="flex items-center bg-gray-700 hover:bg-gray-600 py-2 px-4 rounded-lg cursor-pointer transition">
                   <span class="text-lg mr-2">🎬</span>
                   <span>Video</span>
                   <input type="file" name="video" accept="video/*" class="hidden">
                 </label>
-                
                 <button type="submit" class="ml-auto bg-blue-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-blue-700 transition">Post</button>
               </div>
             </div>
-            
-            <!-- Media Preview Container -->
             <div id="media-preview" class="hidden"></div>
           </form>
         </div>
-        
         <!-- Stories Section -->
         <div class="bg-gray-800 rounded-xl shadow-lg p-4 border border-gray-700">
           <h3 class="text-lg font-bold mb-4">Top Weekly Highlights</h3>
@@ -99,7 +88,6 @@
             {% endfor %}
           </div>
         </div>
-
         <!-- Filters and Search -->
         <div class="bg-gray-800 rounded-xl shadow-lg p-4 border border-gray-700">
           <div class="flex flex-col sm:flex-row gap-4 justify-between">
@@ -120,7 +108,6 @@
             <a href="{{ url_for('views.feed', search='Info') }}" class="py-2 px-4 rounded-full font-medium {{ 'bg-blue-600 text-white' if search_query == 'Info' else 'bg-gray-700 hover:bg-gray-600' }} transition">ℹ️ Info</a>
           </div>
         </div>
-        
         <!-- Feed Posts Grid View -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           {% for post in posts %}
@@ -149,7 +136,6 @@
                   </div>
                 </div>
               </div>
-              
               <!-- Post Caption -->
               <div class="px-4 pb-3">
                 <p>{{ post.caption }}</p>
@@ -161,8 +147,7 @@
                 </div>
                 {% endif %}
               </div>
-              
-              <!-- Post Media Content - Enhanced Display -->
+              <!-- Post Media Content -->
               <div class="media-container relative">
                 {% if post.media_type == 'image' %}
                   <img src="{{ url_for('static', filename=post.media_path or 'default.jpg') }}" 
@@ -181,7 +166,6 @@
                   </div>
                 {% endif %}
               </div>
-              
               <!-- Post Actions -->
               <div class="px-4 py-3 border-t border-gray-700">
                 <div class="flex gap-4">
@@ -233,27 +217,40 @@
             {% endif %}
           {% endfor %}
         </div>
-        
-        <!-- Mobile Reels Navigation (Fixed Bottom) -->
-        <div class="md:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 p-2 z-40">
+       <!-- Mobile Bottom Navigation (Bootstrap Icons, matches base.html) -->
+        <nav class="block md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
           <div class="flex justify-around">
-            <a href="{{ url_for('views.home') }}" class="flex flex-col items-center text-gray-400 hover:text-blue-400">
-              <span class="text-2xl">🏠</span>
-              <span class="text-xs">Home</span>
-            </a>
-            <a href="{{ url_for('views.feed', tab='reels') }}" class="flex flex-col items-center text-gray-400 hover:text-blue-400">
-              <span class="text-2xl">🎬</span>
-              <span class="text-xs">Reels</span>
-            </a>
-            <a href="{{ url_for('views.create_post') }}" class="flex flex-col items-center text-gray-400 hover:text-blue-400">              <span class="text-2xl">➕</span>
-              <span class="text-xs">Create</span>
-            </a>
-            <a href="{{ url_for('auth.user_profile', username=current_user.username) }}" class="flex flex-col items-center text-gray-400 hover:text-blue-400">
-              <span class="text-2xl">👤</span>
-              <span class="text-xs">Profile</span>
-            </a>
+            {% if current_user.is_authenticated %}
+              <a href="{{ url_for('views.home') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
+                <i class="bi bi-house-door text-xl"></i>
+              </a>
+              <a href="{{ url_for('views.reels') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
+                <i class="bi bi-camera-reels text-xl"></i>
+              </a>
+              <!-- MESSAGES LINK WITH UNREAD BADGE FOR MOBILE -->
+                <a href="{{ url_for('messages.inbox') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue relative">
+                    <i class="bi bi-chat-dots text-xl"></i>
+                    {% if current_user.get_unread_message_count() > 0 %}
+                        <span class="absolute top-1 left-5 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {{ current_user.get_unread_message_count() }}
+                        </span>
+                    {% endif %}
+                </a>
+              <a href="{{ url_for('views.profile') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
+                <i class="bi bi-person-circle text-xl"></i>
+              </a>
+            {% else %}
+              <a href="{{ url_for('auth.login') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
+                <i class="bi bi-box-arrow-in-right text-xl"></i>
+                <span class="text-xs">Login</span>
+              </a>
+              <a href="{{ url_for('auth.register') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
+                <i class="bi bi-person-plus text-xl"></i>
+                <span class="text-xs">Register</span>
+              </a>
+            {% endif %}
           </div>
-        </div>
+        </nav>
       </div>
     </div>
   </div>
@@ -279,8 +276,14 @@
     <video id="expandedVideo" controls class="hidden max-h-screen max-w-full mx-auto"></video>
   </div>
 </div>
-
 {% endblock %}
+
+
+<style>
+@media (max-width: 767px) {
+  .sidebar { display: none !important; }
+}
+</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
