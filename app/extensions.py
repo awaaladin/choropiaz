@@ -1,11 +1,15 @@
-# app/extensions.py
-
 from flask_sqlalchemy import SQLAlchemy
-from flask_socketio import SocketIO
+from flask_login import LoginManager
+from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
-from authlib.integrations.flask_client import OAuth
+from flask_mail import Mail
+from flask_socketio import SocketIO
+from authlib.integrations.flask_client import OAuth  
 
 db = SQLAlchemy()
-socketio = SocketIO()
+login_manager = LoginManager()
 csrf = CSRFProtect()
-oauth = OAuth()
+migrate = Migrate()
+mail = Mail()
+socketio = SocketIO()
+oauth = OAuth() 

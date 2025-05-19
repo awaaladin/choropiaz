@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="mb-4">
+        <a href="{{ url_for('messages.inbox') }}" class="text-blue-500 hover:underline flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Messages
+        </a>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow overflow-hidden flex flex-col" style="height: 80vh;">
+        <!-- Conversation Header -->
+        <div class="bg-gray-100 border-b border-gray-200 p-4">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 mr-3">
+                    {% for user in other_participants %}
+                        <img src="{{ url_for('static', filename='profile_pics/' + user.profile_picture) }}" 
+                             alt="{{ user.username }}" 
+                             class="h-10 w-10 rounded-full">
+                    {% endfor %}
+                </div>
+                <div>
+                    <h2 class="text-lg font-semibold">
+                        {% for user in other_participants %}
+                            {{ user.username }}{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </h2>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Message List -->
+        <div class="flex-grow overflow-y-auto p-4" id="message-container">
+            {% for message in messages %}
+                <div class="message mb-4 {% if message.user_id == current_user.id %}sent{% else %}received{% endif %}">
+                    <div class="flex {% if message.user_id == current_user.id %}justify-end{% endif %}">
+                        {% if message.user_id != current_user.id %}
+                            <div class="flex-shrink-0 mr-2">
+                                <img src="{{ url_for('static', filename='profile_pics/' + message.user.profile_picture) }}" 
+                                     alt="{{ message.user.username }}" 
+                                     class="h-8 w-8 rounded-full">
+                            </div>
+                        {% endif %}
+                        
+                        <div class="{% if message.user_id == current_user.id %}
+                                    bg-blue-500 text-white
+                                   {% else %}
+                                    bg-gray-200 text-gray-800
+                                   {% endif %}
+                                   rounded-lg px-4 py-2 max-w-xs md:max-w-md break-words">
+                            <p>{{ message.content }}</p>
+                            <p class="text-xs {% if message.user_id == current_user.id %}text-blue-100{% else %}text-gray-500{% endif %} text-right mt-1">
+                                {{ message.created_at.strftime('%H:%M') }}
+                            </p>
+                        </div>
+                        
+                        {% if message.user_id == current_user.id %}
+                            <div class="flex-shrink-0 ml-2">
+                                <img src="{{ url_for('static', filename='profile_pics/' + current_user.profile_picture) }}" 
+                                     alt="{{ current_user.username }}" 
+                                     class="h-8 w-8 rounded-full">
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Message Input -->
+        <div class="border-t border-gray-200 p-4">
+            <form id="message-form" action="{{ url_for('messages.send_message', conversation_id=conversation.id) }}" method="POST">
+                <div class="flex">
+                    <input type="text" name="content" id="message-input" 
+                           class="flex-grow border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 px-4 py-2" 
+                           placeholder="Type a message..." required>
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white rounded-r-lg px-4 py-2">
+                        Send
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messageContainer = document.getElementById('message-container');
+    const messageForm = document.getElementById('message-form');
+    const messageInput = document.getElementById('message-input');
+    
+    // Scroll to bottom of message container
+    messageContainer.scrollTop = messageContainer.scrollHeight;
+    
+    // Submit message with AJAX
+    messageForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const content = messageInput.value.trim();
+        if (!content) return;
+        
+        const formData = new FormData(messageForm);
+        
+        fetch(messageForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Clear input
+                messageInput.value = '';
+                
+                // Add message to UI
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message mb-4 sent';
+                
+                const currentTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const currentUserPic = "{{ url_for('static', filename='profile_pics/' + current_user.profile_picture) }}";
+                
+                messageDiv.innerHTML = `
+                    <div class="flex justify-end">
+                        <div class="bg-blue-500 text-white rounded-lg px-4 py-2 max-w-xs md:max-w-md break-words">
+                            <p>${data.message.content}</p>
+                            <p class="text-xs text-blue-100 text-right mt-1">${currentTime}</p>
+                        </div>
+                        <div class="flex-shrink-0 ml-2">
+                            <img src="${currentUserPic}" alt="{{ current_user.username }}" class="h-8 w-8 rounded-full">
+                        </div>
+                    </div>
+                `;
+                
+                messageContainer.appendChild(messageDiv);
+                messageContainer.scrollTop = messageContainer.scrollHeight;
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+    
+    // Auto-resize the input field
+    messageInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+    
+    // Mark conversation as read
+    fetch("{{ url_for('messages.mark_conversation_read', conversation_id=conversation.id) }}", {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    });
+    
+    // You can add WebSocket connection here for real-time updates
+});
+</script>
+{% endblock %}

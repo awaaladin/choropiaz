@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Messages</h1>
+        <a href="{{ url_for('messages.new_conversation_form') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+            New Message
+        </a>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="conversation-list">
+            {% if conversations %}
+                {% for conversation in conversations %}
+                    {% set last_message = conversation.last_message %}
+                    {% set other_participants = conversation.participants.filter(ConversationParticipant.user_id != current_user.id).all() %}
+                    {% set participant = conversation.participants.filter(ConversationParticipant.user_id == current_user.id).first() %}
+                    {% set has_unread = participant.has_unread() %}
+                    
+                    <a href="{{ url_for('messages.view_conversation', conversation_id=conversation.id) }}" 
+                       class="conversation-item block border-b border-gray-200 hover:bg-gray-50 transition-colors p-4 
+                              {% if has_unread %}bg-blue-50{% endif %}">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 mr-3">
+                                {% for p in other_participants %}
+                                    <img src="{{ url_for('static', filename='profile_pics/' + p.user.profile_picture) }}" 
+                                         alt="{{ p.user.username }}" 
+                                         class="h-10 w-10 rounded-full">
+                                {% endfor %}
+                            </div>
+                            <div class="flex-grow">
+                                <div class="flex justify-between">
+                                    <p class="font-medium text-gray-900 {% if has_unread %}font-bold{% endif %}">
+                                        {% for p in other_participants %}
+                                            {{ p.user.username }}{% if not loop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </p>
+                                    <p class="text-sm text-gray-500">
+                                        {{ conversation.updated_at.strftime('%b %d') }}
+                                    </p>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <p class="text-sm text-gray-600 truncate {% if has_unread %}font-semibold{% endif %}" style="max-width: 250px;">
+                                        {% if last_message %}
+                                            {% if last_message.user_id == current_user.id %}
+                                                <span class="text-gray-400">You: </span>
+                                            {% else %}
+                                                <span class="text-gray-400">{{ last_message.user.username }}: </span>
+                                            {% endif %}
+                                            {{ last_message.content }}
+                                        {% else %}
+                                            <span class="text-gray-400">No messages yet</span>
+                                        {% endif %}
+                                    </p>
+                                    {% if has_unread %}
+                                        <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-blue-500 text-white text-xs">
+                                            •
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                {% endfor %}
+            {% else %}
+                <div class="p-6 text-center text-gray-500">
+                    <p>No conversations yet.</p>
+                    <a href="{{ url_for('messages.new_conversation_form') }}" class="text-blue-500 hover:underline mt-2 inline-block">
+                        Start a new conversation
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // You can add real-time updates with WebSockets here
+});
+</script>
+{% endblock %}
