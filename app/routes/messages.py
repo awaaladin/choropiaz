@@ -32,7 +32,7 @@ def view_conversation(conversation_id):
         User.id != current_user.id
     ).all()
     messages_list = MsgModel.query.filter_by(conversation_id=conversation_id).order_by(MsgModel.created_at).all()
-    return render_template('conversation.html',  # <-- use your actual template name
+    return render_template('conversation.html',
                           conversation=conversation,
                           messages=messages_list,
                           other_participants=other_participants)
@@ -73,7 +73,7 @@ def send_message(conversation_id):
 @login_required
 def new_conversation_form():
     users = User.query.filter(User.id != current_user.id).all()
-    return render_template('new_conversation.html', users=users)  # <-- use your actual template name
+    return render_template('new_conversation.html', users=users) 
 
 @messages.route('/new-conversation', methods=['POST'])
 @login_required
