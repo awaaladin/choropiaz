@@ -366,7 +366,8 @@ def like_post(post_id):
         db.session.commit()
         return jsonify({'liked': False, 'likes_count': len(post.likes)})
     else:
-        db.session.add(Like(user_id=current_user.id, post_id=post_id))
+        new_like = Like(user_id=current_user.id, post_id=post_id)
+        db.session.add(new_like)
         db.session.commit()
         # Send notification to post owner
         if post.user_id != current_user.id:
