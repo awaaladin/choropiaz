@@ -4,7 +4,6 @@
 <div class="bg-gradient-to-b from-gray-900 to-blue-900 min-h-screen text-white">
   <div class="container mx-auto px-4 py-6">
     <div class="flex flex-col md:flex-row gap-4">
-      <!-- Left Sidebar (Desktop) -->
       <div class="w-full md:w-1/4 lg:w-1/5 hidden md:block">
         <div class="bg-gray-800 rounded-xl shadow-lg p-4 sticky top-4 border border-gray-700">
           <div class="space-y-1">
@@ -20,12 +19,49 @@
               <div class="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center text-white text-xl mr-3">🚪</div>
               <span class="font-medium">Logout</span>
             </a>
+            <a href="{{ 'https://gax-2.onrender.com/accounts/dashboard/' }}" target="_blank" class="flex items-center p-3 rounded-lg hover:bg-green-800 transition">
+              <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white text-xl mr-3">💰</div>
+              <span class="font-medium">Banking Dashboard</span>
+            </a>
           </div>
         </div>
       </div>
-      <!-- Main Content Area -->
       <div class="w-full md:w-3/4 lg:w-4/5 space-y-4">
-        <!-- Create Post Card -->
+        <div class="bg-gray-800 rounded-xl shadow-lg p-4 border border-gray-700">
+          <h2 class="text-xl font-bold mb-4">Your Banking Overview</h2>
+          {% if bank_data %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="bg-gray-700 p-4 rounded-lg">
+                <p class="text-gray-300">Account Balance:</p>
+                <p class="text-2xl font-bold text-green-400">₦{{ bank_data.bank_account.balance|default('0.00') }}</p>
+              </div>
+              <div class="bg-gray-700 p-4 rounded-lg">
+                <p class="text-gray-300">Recent Transactions:</p>
+                <ul class="list-disc list-inside text-sm">
+                  {% for transaction in bank_data.recent_transactions %}
+                    <li>{{ transaction.transaction_type|capitalize }}: ₦{{ transaction.amount }} ({{ transaction.timestamp[:10] }})</li>
+                  {% else %}
+                    <li>No recent transactions.</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+            <div class="mt-4 flex flex-col sm:flex-row gap-3">
+              <button onclick="openSendMoneyModal()" class="flex-1 bg-blue-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-blue-700 transition">
+                Send Money
+              </button>
+              <a href="{{ 'https://gax-2.onrender.com/accounts/deposit/' }}" target="_blank" class="flex-1 text-center bg-green-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-green-700 transition">
+                Deposit Funds
+              </a>
+            </div>
+          {% else %}
+            <p class="text-gray-400">Could not load banking data. Please ensure you are logged into the banking app.</p>
+            <a href="{{ 'https://gax-2.onrender.com/accounts/login/' }}" target="_blank" class="mt-2 inline-block bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition">
+              Login to Banking App
+            </a>
+          {% endif %}
+        </div>
+        
         <div class="bg-gray-800 rounded-xl shadow-lg p-4 border border-gray-700">
           <h2 class="text-xl font-bold mb-4">Create a New Post</h2>
           <form id="create-post-form" action="{{ url_for('views.create_post') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
@@ -38,19 +74,17 @@
             <div class="flex flex-col md:flex-row gap-3">
               <select name="category" class="bg-gray-700 text-white p-3 rounded-lg border border-gray-600" required>
                 <option value="">Select Category</option>
-                <option value="goods">🛒 Goods</option>
-                <option value="services">🛠️ Services</option>
+                <option value="goods">🛍️ Goods</option>
+                <option value="services">🚲 Services</option>
                 <option value="info">ℹ️ Info</option>
               </select>
               <div class="flex items-center gap-2 flex-wrap flex-1">
                 <label class="flex items-center bg-gray-700 hover:bg-gray-600 py-2 px-4 rounded-lg cursor-pointer transition">
-                  <span class="text-lg mr-2">🖼️</span>
-                  <span>Photo</span>
+                  <span class="text-lg mr-2">🖼️</span><span>Photo</span>
                   <input type="file" name="image" accept="image/*" class="hidden">
                 </label>
                 <label class="flex items-center bg-gray-700 hover:bg-gray-600 py-2 px-4 rounded-lg cursor-pointer transition">
-                  <span class="text-lg mr-2">🎬</span>
-                  <span>Video</span>
+                  <span class="text-lg mr-2">🎮</span><span>Video</span>
                   <input type="file" name="video" accept="video/*" class="hidden">
                 </label>
                 <button type="submit" class="ml-auto bg-blue-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-blue-700 transition">Post</button>
@@ -59,7 +93,6 @@
             <div id="media-preview" class="hidden"></div>
           </form>
         </div>
-        <!-- Stories Section -->
         <div class="bg-gray-800 rounded-xl shadow-lg p-4 border border-gray-700">
           <h3 class="text-lg font-bold mb-4">Top Weekly Highlights</h3>
           <div class="space-y-4">
@@ -88,7 +121,6 @@
             {% endfor %}
           </div>
         </div>
-        <!-- Filters and Search -->
         <div class="bg-gray-800 rounded-xl shadow-lg p-4 border border-gray-700">
           <div class="flex flex-col sm:flex-row gap-4 justify-between">
             <div class="flex gap-2 overflow-x-auto pb-2">
@@ -104,15 +136,13 @@
           <div class="flex gap-2 mt-4 overflow-x-auto pb-2">
             <a href="{{ url_for('views.feed') }}" class="py-2 px-4 rounded-full font-medium {{ 'bg-blue-600 text-white' if not search_query else 'bg-gray-700 hover:bg-gray-600' }} transition">🔄 All</a>
             <a href="{{ url_for('views.feed', search='Goods') }}" class="py-2 px-4 rounded-full font-medium {{ 'bg-blue-600 text-white' if search_query == 'Goods' else 'bg-gray-700 hover:bg-gray-600' }} transition">🛒 Goods</a>
-            <a href="{{ url_for('views.feed', search='Services') }}" class="py-2 px-4 rounded-full font-medium {{ 'bg-blue-600 text-white' if search_query == 'Services' else 'bg-gray-700 hover:bg-gray-600' }} transition">🛠️ Services</a>
+            <a href="{{ url_for('views.feed', search='Services') }}" class="py-4 rounded-full font-medium {{ 'bg-blue-600 text-white' if search_query == 'Services' else 'bg-gray-700 hover:bg-gray-600' }} transition">🛠️ Services</a>
             <a href="{{ url_for('views.feed', search='Info') }}" class="py-2 px-4 rounded-full font-medium {{ 'bg-blue-600 text-white' if search_query == 'Info' else 'bg-gray-700 hover:bg-gray-600' }} transition">ℹ️ Info</a>
           </div>
         </div>
-        <!-- Feed Posts Grid View -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           {% for post in posts %}
             <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700 transition hover:shadow-xl">
-              <!-- Post Header -->
               <div class="p-4 flex items-start gap-3">
                 <a href="{{ url_for('auth.user_profile', username=post.user.username) }}">
                   <img src="{{ url_for('static', filename='profile_pics/' + post.user.profile_picture) }}" class="w-12 h-12 rounded-full object-cover border-2 border-blue-500" alt="Profile picture">
@@ -136,37 +166,32 @@
                   </div>
                 </div>
               </div>
-              <!-- Post Caption -->
               <div class="px-4 pb-3">
                 <p>{{ post.caption }}</p>
                 {% if post.is_purchasable %}
                 <div class="mt-2">
-                  <button class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-lg transition" onclick="buyItem({{ post.id }})">
-                    Buy for ${{ post.price }}
+                  <button class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-lg transition" 
+                          onclick="buyItem('{{ post.id }}', {{ post.price }})">
+                    Buy for ₦{{ post.price }}
                   </button>
                 </div>
                 {% endif %}
               </div>
-              <!-- Post Media Content -->
               <div class="media-container relative">
-                {% if post.media_type == 'image' %}
-                  <img src="{{ url_for('static', filename=post.media_path or 'default.jpg') }}" 
-                       alt="Post Image" 
-                       class="w-full h-64 object-cover cursor-pointer"
-                       onclick="openMediaModal('image', '{{ url_for('static', filename=post.media_path or 'default.jpg') }}')">
-                {% elif post.media_type == 'video' %}
-                  <video class="w-full h-64 object-cover cursor-pointer" onclick="playVideo(this)" poster="{{ url_for('static', filename='thumbnails/' + post.id|string + '.jpg') or 'default-thumbnail.jpg' }}">
-                    <source src="{{ url_for('static', filename=post.media_path) }}" type="video/mp4">
-                    Your browser does not support the video tag.
-                  </video>
-                  <div class="absolute inset-0 flex items-center justify-center play-button pointer-events-none">
-                    <div class="w-16 h-16 bg-blue-600 bg-opacity-75 rounded-full flex items-center justify-center">
-                      <span class="text-white text-3xl">▶</span>
-                    </div>
-                  </div>
-                {% endif %}
+                <a href="{{ url_for('views.view_post', post_id=post.id) }}">
+                  {% if post.media_type == 'image' %}
+                    <img src="{{ url_for('static', filename=post.media_path or 'default.jpg') }}" 
+                         alt="Post Image" 
+                         class="w-full h-64 object-cover"
+                         onerror="this.onerror=null;this.src='/static/default.jpg';">
+                  {% elif post.media_type == 'video' %}
+                    <video controls class="w-full h-64 object-cover" poster="{{ url_for('static', filename='thumbnails/' + post.id|string + '.jpg') if post.media_type == 'video' else url_for('static', filename='default-thumbnail.jpg') }}">
+                      <source src="{{ url_for('static', filename=post.media_path) }}" type="video/mp4">
+                      Your browser does not support the video tag.
+                    </video>
+                  {% endif %}
+                </a>
               </div>
-              <!-- Post Actions -->
               <div class="px-4 py-3 border-t border-gray-700">
                 <div class="flex gap-4">
                   <form method="POST" action="{{ url_for('views.like_post', post_id=post.id) }}" class="flex-1">
@@ -185,7 +210,7 @@
                     <span>Share</span>
                   </button>
                   {% if post.user == current_user %}
-                    <button onclick="openModal({{ post.id }})" class="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-red-900 transition text-red-400">
+                    <button onclick="openModal('{{ post.id }}')" class="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-red-900 transition text-red-400">
                       <span class="text-xl">🗑️</span>
                       <span>Delete</span>
                     </button>
@@ -193,13 +218,12 @@
                 </div>
               </div>
             </div>
-            <!-- Delete Modal -->
             {% if post.user == current_user %}
               <div id="modal-{{ post.id }}" class="modal hidden fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center">
                 <div class="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 border border-gray-700">
                   <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold">Confirm Deletion</h3>
-                    <button onclick="closeModal({{ post.id }})" class="text-gray-400 hover:text-gray-200">
+                    <button onclick="closeModal('{{ post.id }}')" class="text-gray-400 hover:text-gray-200">
                       <span class="text-2xl">&times;</span>
                     </button>
                   </div>
@@ -208,7 +232,7 @@
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <input type="password" name="password" placeholder="Enter your password to confirm" required class="w-full p-3 border border-gray-700 bg-gray-700 text-white rounded-lg">
                     <div class="flex justify-end gap-3">
-                      <button type="button" onclick="closeModal({{ post.id }})" class="py-2 px-4 border border-gray-600 rounded-lg hover:bg-gray-700 transition">Cancel</button>
+                      <button type="button" onclick="closeModal('{{ post.id }}')" class="py-2 px-4 border border-gray-600 rounded-lg hover:bg-gray-700 transition">Cancel</button>
                       <button type="submit" class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition">Delete Post</button>
                     </div>
                   </form>
@@ -217,8 +241,7 @@
             {% endif %}
           {% endfor %}
         </div>
-       <!-- Mobile Bottom Navigation (Bootstrap Icons, matches base.html) -->
-        <nav class="block md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+       <nav class="block md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
           <div class="flex justify-around">
             {% if current_user.is_authenticated %}
               <a href="{{ url_for('views.home') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
@@ -227,8 +250,7 @@
               <a href="{{ url_for('views.reels') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
                 <i class="bi bi-camera-reels text-xl"></i>
               </a>
-              <!-- MESSAGES LINK WITH UNREAD BADGE FOR MOBILE -->
-                <a href="{{ url_for('messages.inbox') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue relative">
+              <a href="{{ url_for('messages.inbox') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue relative">
                     <i class="bi bi-chat-dots text-xl"></i>
                     {% if current_user.get_unread_message_count() > 0 %}
                         <span class="absolute top-1 left-5 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
@@ -256,7 +278,36 @@
   </div>
 </div>
 
-<!-- Story Modal -->
+<div id="sendMoneyModal" class="modal hidden fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center">
+  <div class="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 border border-gray-700">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-bold">Send Money</h3>
+      <button onclick="closeSendMoneyModal()" class="text-gray-400 hover:text-gray-200">
+        <span class="text-2xl">&times;</span>
+      </button>
+    </div>
+    <form id="send-money-form" action="{{ url_for('views.send_money') }}" method="POST" class="space-y-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div>
+        <label for="recipient_account_number" class="block text-gray-300 text-sm font-medium mb-1">Recipient Account Number (Phone Number)</label>
+        <input type="text" id="recipient_account_number" name="recipient_account_number" placeholder="e.g., 08012345678" required class="w-full p-3 border border-gray-700 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label for="amount" class="block text-gray-300 text-sm font-medium mb-1">Amount (₦)</label>
+        <input type="number" id="amount" name="amount" step="0.01" min="0.01" placeholder="e.g., 1000.00" required class="w-full p-3 border border-gray-700 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label for="details" class="block text-gray-300 text-sm font-medium mb-1">Details (Optional)</label>
+        <textarea id="details" name="details" rows="2" placeholder="e.g., For groceries" class="w-full p-3 border border-gray-700 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+      </div>
+      <div class="flex justify-end gap-3">
+        <button type="button" onclick="closeSendMoneyModal()" class="py-2 px-4 border border-gray-600 rounded-lg hover:bg-gray-700 transition">Cancel</button>
+        <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition">Send</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div id="storyModal" class="modal hidden fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center">
   <button onclick="closeStoryModal()" class="absolute top-4 right-4 text-white text-4xl">&times;</button>
   <div class="max-w-2xl w-full max-h-screen">
@@ -268,7 +319,6 @@
   </div>
 </div>
 
-<!-- Media Expanded Modal -->
 <div id="mediaModal" class="modal hidden fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center">
   <button onclick="closeMediaModal()" class="absolute top-4 right-4 text-white text-4xl">&times;</button>
   <div class="max-w-4xl w-full max-h-screen">
@@ -287,7 +337,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // --- Modal Functions ---
+  // --- Modal Functions (for delete confirmation) ---
   window.openModal = function(postId) {
     document.getElementById(`modal-${postId}`).classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -329,7 +379,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.style.overflow = '';
   };
   
-  // --- Media Modal Functions ---
+  // --- Media Modal Functions (kept, but no longer used for feed posts directly) ---
+  // If you decide to re-enable direct media clicks on feed, you can uncomment this part
+  /*
   window.openMediaModal = function(mediaType, mediaPath) {
     const modal = document.getElementById("mediaModal");
     const img = document.getElementById("expandedImage");
@@ -356,8 +408,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (video && !video.paused) video.pause();
     document.body.style.overflow = '';
   };
+  */
   
-  // --- Video Play Function ---
+  // --- Video Play Function (not directly used for feed post media clicks anymore, but can be for other videos) ---
   window.playVideo = function(videoElement) {
     // Find the parent container
     const container = videoElement.closest('.media-container');
@@ -393,11 +446,66 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   };
   
-  // --- Buy Item Placeholder ---
-  window.buyItem = function(postId) {
-    alert('Purchase feature coming soon!');
+  // --- Buy Item Function (Modified to use Django Stripe API) ---
+  window.buyItem = async function(postId, price) {
+    const djangoApiBaseUrl = "https://gax-2.onrender.com/api/accounts"; // Django API URL
+    const stripePublicKey = "{{ STRIPE_PUBLIC_KEY }}"; // You need to pass this from Flask backend if using Stripe.js client-side
+    
+    // For this to work, Flask needs the Django API token.
+    // In a full integration, you'd fetch this token after Flask user logs in.
+    // For now, we'll assume a token is available or that Django's API is accessible
+    // without a token for this specific endpoint (which is unlikely for payment).
+    // The most robust way is to make this a Flask backend call, then redirect.
+    
+    // Since the user asked for a direct redirect to Django for payment,
+    // and Django's `create_stripe_session` is an API endpoint expecting POST,
+    // the most seamless way is for Flask's JS to make the POST and then redirect.
+    
+    // Check if current_user.id is available and pass it to Django for user mapping
+    const userId = "{{ current_user.id }}"; // Flask's current user ID
+    
+    try {
+      const response = await fetch(`${djangoApiBaseUrl}/stripe-session/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // 'Authorization': `Token ${FLASK_APP_DJANGO_API_TOKEN}` // Uncomment if Flask has a Django token
+        },
+        body: JSON.stringify({ 
+          amount: Math.round(price * 100), // Stripe amount in kobo/cents
+          user_id: userId // Pass Flask user ID to Django for mapping
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to initiate payment.');
+      }
+
+      const data = await response.json();
+      if (data.sessionId) {
+        // Redirect to Stripe Checkout
+        window.location.href = `https://checkout.stripe.com/pay/${data.sessionId}`;
+      } else {
+        showNotification('Failed to get Stripe session ID from banking app.', false);
+      }
+    } catch (error) {
+      console.error('Error initiating Stripe session:', error);
+      showNotification(`Payment initiation failed: ${error.message}`, false);
+    }
   };
   
+  // --- Send Money Modal Functions ---
+  window.openSendMoneyModal = function() {
+    document.getElementById('sendMoneyModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeSendMoneyModal = function() {
+    document.getElementById('sendMoneyModal').classList.add('hidden');
+    document.body.style.overflow = '';
+  };
+
   // --- Create Post Form: Media Preview & Submission ---
   const form = document.getElementById('create-post-form');
   if (form) {
@@ -532,11 +640,15 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   // --- Video Play Buttons ---
+  // This section is more relevant for videos that are NOT part of a link
   document.querySelectorAll('.media-container video').forEach(video => {
+    // This part should be removed if the video is always part of a link to view_post
+    // If you add videos that are not linked to a view_post page, you might want this
+    // For the current setup, the click will navigate to view_post.html
+    /*
     const container = video.closest('.media-container');
     const playButton = container.querySelector('.play-button');
     
-    // If video is clicked, toggle play/pause
     video.addEventListener('click', function(e) {
       e.stopPropagation();
       if (video.paused) {
@@ -545,15 +657,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }).catch(e => console.log("Play error:", e));
       } else {
         video.pause();
-        if (playButton) playButton.video.pause();
         if (playButton) playButton.style.display = 'flex';
       }
     });
     
-    // Handle video ending
     video.addEventListener('ended', function() {
       if (playButton) playButton.style.display = 'flex';
     });
+    */
   });
   
   // --- Notification System ---
@@ -615,17 +726,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const mainContent = document.querySelector('.w-full.md\\:w-3\\/4.lg\\:w-4\\/5');
     
     if (mainContent) {
-      // Create reels container
       const reelsSection = document.createElement('div');
       reelsSection.className = 'reels-section bg-gray-800 rounded-xl shadow-lg p-4 border border-gray-700 mb-4';
       reelsSection.innerHTML = `
         <h3 class="text-lg font-bold mb-4">Trending Reels</h3>
         <div class="reels-container flex overflow-x-auto gap-3 pb-2 snap-x">
-          <!-- Reels will be dynamically inserted here -->
-        </div>
+          </div>
       `;
       
-      // Insert after filters or stories section
       const insertAfter = mainContent.querySelector('.bg-gray-800:nth-child(3)') || mainContent.querySelector('.bg-gray-800:first-child');
       if (insertAfter && insertAfter.nextSibling) {
         mainContent.insertBefore(reelsSection, insertAfter.nextSibling);
@@ -633,21 +741,21 @@ document.addEventListener('DOMContentLoaded', function() {
         mainContent.prepend(reelsSection);
       }
       
-      // Find videos in feed and clone them into reels
       const reelsContainer = reelsSection.querySelector('.reels-container');
       document.querySelectorAll('.media-container video').forEach((video, index) => {
-        if (index < 10) { // Limit to 10 reels for performance
+        if (index < 10) { 
           const post = video.closest('.bg-gray-800.rounded-xl');
           if (post) {
             const user = post.querySelector('a.font-bold')?.textContent || 'User';
             const caption = post.querySelector('div.px-4.pb-3 p')?.textContent || '';
             
-            // Create reel item
             const reelItem = document.createElement('div');
             reelItem.className = 'reel-item flex-shrink-0 w-48 h-80 rounded-xl overflow-hidden cursor-pointer relative snap-start';
+            const videoSrc = video.querySelector('source')?.src || video.src;
+            const posterSrc = video.getAttribute('poster') || '/static/default-thumbnail.jpg';
             reelItem.innerHTML = `
-              <video muted loop class="w-full h-full object-cover" poster="${video.poster}">
-                <source src="${video.querySelector('source')?.src || video.src}" type="video/mp4">
+              <video muted loop class="w-full h-full object-cover" poster="${posterSrc}">
+                <source src="${videoSrc}" type="video/mp4">
               </video>
               <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
               <div class="absolute bottom-0 left-0 right-0 p-3">
@@ -661,9 +769,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
               </div>
             `;
-            
-            // Intersection observer to play video when in view
             const reelVideo = reelItem.querySelector('video');
+            reelVideo.onerror = function() {
+              this.poster = '/static/default-thumbnail.jpg';
+            };
+            
             const observer = new IntersectionObserver((entries) => {
               entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -676,10 +786,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             observer.observe(reelItem);
             
-            // Add to container
             reelsContainer.appendChild(reelItem);
             
-            // Click to expand
             reelItem.addEventListener('click', () => {
               openMediaModal('video', reelVideo.querySelector('source')?.src || reelVideo.src);
             });
@@ -689,23 +797,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
-  // --- Feed Layout Improvements for Media Display ---
-  // Convert grid layout to Facebook-like timeline for larger screens
   const feedGrid = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.gap-4');
-  if (feedGrid && window.innerWidth >= 1024) { // Apply only on larger screens
+  if (feedGrid && window.innerWidth >= 1024) {
     feedGrid.classList.remove('md:grid-cols-2');
     feedGrid.classList.add('md:grid-cols-1', 'max-w-2xl', 'mx-auto');
     
-    // Enhance post appearance
     feedGrid.querySelectorAll('.bg-gray-800.rounded-xl').forEach(post => {
       post.classList.add('hover:border-blue-500', 'transition-all', 'duration-300');
       
-      // Improve media visibility
       const mediaContainer = post.querySelector('.media-container');
       if (mediaContainer) {
         mediaContainer.classList.add('border-t', 'border-b', 'border-gray-700');
         
-        // Better height for videos and images
         const media = mediaContainer.querySelector('img, video');
         if (media) {
           media.classList.remove('h-64');
@@ -715,11 +818,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // --- Enhance Mobile Experience ---
-  // Detect if user is on mobile
+ 
   const isMobile = window.innerWidth <= 768;
   if (isMobile) {
-    // Add swipe gesture for reels navigation
     const reelsContainer = document.querySelector('.reels-container');
     if (reelsContainer) {
       let startX, moved;
@@ -748,23 +849,19 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
     
-    // Enhance mobile navigation bar
     const mobileNav = document.querySelector('.md\\:hidden.fixed.bottom-0');
     if (mobileNav) {
       mobileNav.classList.add('backdrop-blur-md', 'bg-gray-900/90');
     }
   }
   
-  // --- Dynamic Feed Loading for Better Performance ---
-  // Lazy load posts as user scrolls
+  
   const posts = document.querySelectorAll('.bg-gray-800.rounded-xl');
   const lazyLoadPosts = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        // Reveal post with animation
         entry.target.classList.add('animate-fadeIn');
         
-        // Load media if needed
         const mediaContainer = entry.target.querySelector('.media-container');
         if (mediaContainer) {
           const img = mediaContainer.querySelector('img[data-src]');
@@ -784,7 +881,6 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         }
         
-        // Stop observing once loaded
         lazyLoadPosts.unobserve(entry.target);
       }
     });
@@ -794,12 +890,10 @@ document.addEventListener('DOMContentLoaded', function() {
     threshold: 0.1
   });
   
-  // Start observing each post
   posts.forEach(post => {
     lazyLoadPosts.observe(post);
   });
   
-  // Add CSS animation
   const styleEl = document.createElement('style');
   styleEl.textContent = `
     @keyframes fadeIn {
@@ -843,5 +937,3 @@ document.addEventListener('DOMContentLoaded', function() {
   document.head.appendChild(styleEl);
 });
 </script>
-
-

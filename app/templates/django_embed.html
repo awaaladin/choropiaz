@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Banking Dashboard{% endblock %}
+
+{% block content %}
+<div class="my-6 shadow-lg rounded-2xl overflow-hidden border border-gray-300">
+  <div class="bg-white px-4 py-3 flex justify-between items-center border-b border-gray-200">
+    <h2 class="text-2xl font-semibold text-choropia-blue">Banking Dashboard</h2>
+    <a href="https://gax-2.onrender.com/accounts/dashboard/" target="_blank" class="text-sm text-blue-600 hover:underline">Open in New Tab</a>
+  </div>
+  <iframe 
+    src="https://gax-2.onrender.com/accounts/dashboard/"
+    class="w-full h-[80vh] border-none rounded-b-2xl"
+    loading="lazy"
+    title="Banking App"
+  ></iframe>
+</div>
+{% endblock %}
+
+{% block extra %}
+<!-- Slide-over banking iframe panel -->
+<div id="bankPanel" class="fixed top-0 right-0 h-full w-full md:w-[480px] bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out">
+  <div class="flex items-center justify-between p-4 border-b border-gray-200">
+    <h3 class="text-lg font-semibold text-choropia-blue">Banking</h3>
+    <button onclick="toggleBankPanel()" class="text-gray-600 hover:text-red-600 text-xl">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+  <iframe 
+    src="https://gax-2.onrender.com/accounts/dashboard/" 
+    class="w-full h-[calc(100%-56px)] border-none"
+    loading="lazy"
+    title="Banking Interface">
+  </iframe>
+</div>
+<script>
+function toggleBankPanel() {
+  const panel = document.getElementById('bankPanel');
+  panel.classList.toggle('translate-x-full');
+}
+</script>
+{% endblock %}

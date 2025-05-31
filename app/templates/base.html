@@ -26,7 +26,6 @@
             }
         }
     </script>
-    <!-- Apply theme immediately to prevent flash -->
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme') || 'light';
@@ -44,11 +43,24 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="bg-choropia-gray min-h-screen">
-    <!-- Fixed Top Navigation -->
+    <div id="bankPanel" class="fixed top-0 right-0 w-full sm:w-[420px] h-full bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out">
+        <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
+            <h2 class="text-lg font-bold text-choropia-blue">Banking</h2>
+            <button onclick="toggleBankPanel()" class="text-gray-500 hover:text-red-600 text-xl">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <iframe 
+            src="https://gax-2.onrender.com/accounts/dashboard/" 
+            class="w-full h-[calc(100%-56px)] border-none"
+            title="Django Banking Panel"
+            loading="lazy">
+        </iframe>
+    </div>
+
     <nav class="fixed top-0 left-0 right-0 bg-white shadow-md z-50">
         <div class="container mx-auto px-4">
             <div class="flex items-center justify-between h-16">
-                <!-- Logo and Search -->
                 <div class="flex items-center space-x-4">
                     <a href="{{ url_for('views.home') }}" class="text-choropia-blue text-3xl font-bold tracking-tight">CHOROPIA</a>
                     <div class="relative">
@@ -57,8 +69,7 @@
                     </div>
                 </div>
 
-               <!-- Main Navigation -->
-                <div class="hidden md:flex items-center space-x-1">
+               <div class="hidden md:flex items-center space-x-1">
                     {% if current_user.is_authenticated %}
                         <a href="{{ url_for('views.home') }}" class="nav-icon-link group">
                             <div class="p-2 mx-2 rounded-lg group-hover:bg-choropia-gray">
@@ -70,9 +81,10 @@
                                 <i class="bi bi-camera-reels text-2xl"></i>
                             </div>
                         </a>
-                        
-                        </a>
-                        <!-- MESSAGES LINK WITH UNREAD BADGE -->
+                        <button onclick="toggleBankPanel()" class="p-2 rounded-full bg-choropia-gray hover:bg-gray-300">
+                            <i class="bi bi-bank text-xl text-choropia-blue"></i>
+                        </button>
+
                         <a href="{{ url_for('messages.inbox') }}" class="nav-icon-link group relative">
                             <div class="p-2 mx-2 rounded-lg group-hover:bg-choropia-gray flex items-center">
                                 <i class="bi bi-chat-dots text-2xl"></i>
@@ -91,9 +103,7 @@
                     {% endif %}
                 </div>
 
-                <!-- Right Navigation -->
                 <div class="flex items-center space-x-2">
-                    <!-- Theme Toggle Button (Added) -->
                     <button id="themeToggleBtn" class="p-2 rounded-full bg-choropia-gray hover:bg-gray-200">
                         <i id="themeToggleIcon" class="bi bi-moon text-xl"></i>
                     </button>
@@ -101,7 +111,9 @@
                     {% if current_user.is_authenticated %}
                         <div class="relative group">
                             <button class="p-2 rounded-full bg-choropia-gray hover:bg-gray-200">
-                                <i class="bi bi-bell text-xl"></i>
+                                <a href="{{ url_for('notifications.view_notifications') }}" class="nav-icon-link group">
+                                       <i class="bi bi-bell text-xl"></i>
+                                </a>
                             </button>
                         </div>
                         <div class="relative group">
@@ -139,7 +151,6 @@
         </div>
     </nav>
     
-    <!-- Mobile Navigation (Bottom) -->
     <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30">
         <div class="flex justify-around">
             {% if current_user.is_authenticated %}
@@ -150,7 +161,6 @@
                     <i class="bi bi-camera-reels text-xl"></i>
                 </a>
                 
-                <!-- MESSAGES LINK WITH UNREAD BADGE FOR MOBILE -->
                 <a href="{{ url_for('messages.inbox') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue relative">
                     <i class="bi bi-chat-dots text-xl"></i>
                     {% if current_user.get_unread_message_count() > 0 %}
@@ -175,7 +185,6 @@
         </div>
     </div>
     
-    <!-- Flash Messages -->
     <div class="container mx-auto px-4 pt-20">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -191,12 +200,16 @@
         {% endwith %}
     </div>
 
-    <!-- Page Content -->
     <div class="container mx-auto px-4 pb-16 md:pb-0">
         {% block content %}{% endblock %}
     </div>
 
     <script>
+        function toggleBankPanel() {
+            const panel = document.getElementById('bankPanel');
+            panel.classList.toggle('translate-x-full');
+        }
+
         // Toggle profile dropdown
         document.getElementById('profileDropdown')?.addEventListener('click', function() {
             const menu = document.getElementById('profileMenu');
@@ -209,190 +222,181 @@
                 document.getElementById('profileMenu')?.classList.add('hidden');
             }
         });
-    </script>
-    <script>
-        // Add this to your base template (just before the closing </body> tag)
-// This ensures that CSRF token is included in all AJAX requests
-document.addEventListener('DOMContentLoaded', function() {
-    // Get CSRF token from meta tag
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    
-    // Set up AJAX defaults to include CSRF token
-    // This will ensure all fetch/XHR requests include the token
-    document.addEventListener('submit', function(e) {
-        if (e.target.tagName === 'FORM' && e.target.method.toLowerCase() === 'post') {
-            // Check if the form already has a CSRF token field
-            if (!e.target.querySelector('input[name="csrf_token"]')) {
-                const csrfInput = document.createElement('input');
-                csrfInput.type = 'hidden';
-                csrfInput.name = 'csrf_token';
-                csrfInput.value = csrfToken;
-                e.target.appendChild(csrfInput);
-            }
-        }
-    });
-    
-    // For any fetch API calls
-    const originalFetch = window.fetch;
-    window.fetch = function(url, options) {
-        options = options || {};
-        if (options.method && options.method.toLowerCase() === 'post') {
-            options.headers = options.headers || {};
-            options.headers['X-CSRFToken'] = csrfToken;
-        }
-        return originalFetch(url, options);
-    };
-});
-    </script>
-    <script>
-        /**
- * Main JavaScript for AJAX functionality for likes and follows
- * This script should be included in your base template
- */
 
-// Wait for DOM to load
-document.addEventListener('DOMContentLoaded', function() {
-    // Get CSRF token from meta tag
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    
-    // ---------- LIKE FUNCTIONALITY ----------
-    // Add event listeners to all like buttons
-    document.querySelectorAll('.like-button').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
+        // Add this to your base template (just before the closing </body> tag)
+        // This ensures that CSRF token is included in all AJAX requests
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get CSRF token from meta tag
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             
-            const postId = this.getAttribute('data-post-id');
-            const likeCount = document.querySelector(`.like-count-${postId}`);
-            const likeIcon = this.querySelector('i');
-            
-            // Send AJAX request
-            fetch(`/like/${postId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Update the like count
-                likeCount.textContent = data.likes_count;
-                
-                // Toggle the like button appearance
-                if (data.liked) {
-                    likeIcon.classList.remove('far');
-                    likeIcon.classList.add('fas');
-                    likeIcon.style.color = '#e74c3c'; // Red for liked
-                } else {
-                    likeIcon.classList.remove('fas');
-                    likeIcon.classList.add('far');
-                    likeIcon.style.color = '#777'; // Gray for not liked
-                }
-            })
-            .catch(error => console.error('Error:', error));
-        });
-    });
-    
-    // ---------- FOLLOW FUNCTIONALITY ----------
-    // Add event listeners to all follow buttons
-    document.querySelectorAll('.follow-button').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const userId = this.getAttribute('data-user-id');
-            
-            // Send AJAX request
-            fetch(`/follow/${userId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Toggle the follow button text and appearance
-                if (data.following) {
-                    this.textContent = 'Following';
-                    this.classList.remove('btn-primary');
-                    this.classList.add('btn-secondary');
-                } else {
-                    this.textContent = 'Follow';
-                    this.classList.remove('btn-secondary');
-                    this.classList.add('btn-primary');
-                }
-            })
-            .catch(error => console.error('Error:', error));
-        });
-    });
-    
-    // ---------- REEL FUNCTIONALITY ----------
-    // Handle reel video playing
-    const reelVideos = document.querySelectorAll('.reel-video');
-    
-    // Function to handle intersection observer
-    const handleIntersection = (entries, observer) => {
-        entries.forEach(entry => {
-            // If the video is in view
-            if (entry.isIntersecting) {
-                const video = entry.target;
-                video.play().catch(e => console.error('Error playing video:', e));
-                
-                // Pause other videos
-                reelVideos.forEach(v => {
-                    if (v !== video && !v.paused) {
-                        v.pause();
+            // Set up AJAX defaults to include CSRF token
+            // This will ensure all fetch/XHR requests include the token
+            document.addEventListener('submit', function(e) {
+                if (e.target.tagName === 'FORM' && e.target.method.toLowerCase() === 'post') {
+                    // Check if the form already has a CSRF token field
+                    if (!e.target.querySelector('input[name="csrf_token"]')) {
+                        const csrfInput = document.createElement('input');
+                        csrfInput.type = 'hidden';
+                        csrfInput.name = 'csrf_token';
+                        csrfInput.value = csrfToken;
+                        e.target.appendChild(csrfInput);
                     }
-                });
-            } else {
-                // Pause if not in view
-                entry.target.pause();
-            }
-        });
-    };
-    
-    // Set up intersection observer for each video
-    if (reelVideos.length > 0) {
-        const observer = new IntersectionObserver(handleIntersection, {
-            threshold: 0.5 // 50% of the video must be visible
-        });
-        
-        reelVideos.forEach(video => {
-            observer.observe(video);
-            
-            // Add manual play/pause on click
-            video.addEventListener('click', function() {
-                if (this.paused) {
-                    this.play();
-                } else {
-                    this.pause();
                 }
             });
-        });
-    }
-    
-    // ---------- PROFILE PICTURE UPLOAD ----------
-    // Preview image before upload
-    const profilePictureInput = document.querySelector('#profile_picture');
-    const profilePicturePreview = document.querySelector('#profile-picture-preview');
-    
-    if (profilePictureInput && profilePicturePreview) {
-        profilePictureInput.addEventListener('change', function() {
-            const file = this.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    profilePicturePreview.src = e.target.result;
-                    profilePicturePreview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
+            
+            // For any fetch API calls
+            const originalFetch = window.fetch;
+            window.fetch = function(url, options) {
+                options = options || {};
+                if (options.method && options.method.toLowerCase() === 'post') {
+                    options.headers = options.headers || {};
+                    options.headers['X-CSRFToken'] = csrfToken;
+                }
+                return originalFetch(url, options);
+            };
+
+            /**
+             * Main JavaScript for AJAX functionality for likes and follows
+             * This script should be included in your base template
+             */
+            
+            // ---------- LIKE FUNCTIONALITY ----------
+            // Add event listeners to all like buttons
+            document.querySelectorAll('.like-button').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const postId = this.getAttribute('data-post-id');
+                    const likeCount = document.querySelector(`.like-count-${postId}`);
+                    const likeIcon = this.querySelector('i');
+                    
+                    // Send AJAX request
+                    fetch(`/like/${postId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Update the like count
+                        likeCount.textContent = data.likes_count;
+                        
+                        // Toggle the like button appearance
+                        if (data.liked) {
+                            likeIcon.classList.remove('far');
+                            likeIcon.classList.add('fas');
+                            likeIcon.style.color = '#e74c3c'; // Red for liked
+                        } else {
+                            likeIcon.classList.remove('fas');
+                            likeIcon.classList.add('far');
+                            likeIcon.style.color = '#777'; // Gray for not liked
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                });
+            });
+            
+            // ---------- FOLLOW FUNCTIONALITY ----------
+            // Add event listeners to all follow buttons
+            document.querySelectorAll('.follow-button').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const userId = this.getAttribute('data-user-id');
+                    
+                    // Send AJAX request
+                    fetch(`/follow/${userId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Toggle the follow button text and appearance
+                        if (data.following) {
+                            this.textContent = 'Following';
+                            this.classList.remove('btn-primary');
+                            this.classList.add('btn-secondary');
+                        } else {
+                            this.textContent = 'Follow';
+                            this.classList.remove('btn-secondary');
+                            this.classList.add('btn-primary');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                });
+            });
+            
+            // ---------- REEL FUNCTIONALITY ----------
+            // Handle reel video playing
+            const reelVideos = document.querySelectorAll('.reel-video');
+            
+            // Function to handle intersection observer
+            const handleIntersection = (entries, observer) => {
+                entries.forEach(entry => {
+                    // If the video is in view
+                    if (entry.isIntersecting) {
+                        const video = entry.target;
+                        video.play().catch(e => console.error('Error playing video:', e));
+                        
+                        // Pause other videos
+                        reelVideos.forEach(v => {
+                            if (v !== video && !v.paused) {
+                                v.pause();
+                            }
+                        });
+                    } else {
+                        // Pause if not in view
+                        entry.target.pause();
+                    }
+                });
+            };
+            
+            // Set up intersection observer for each video
+            if (reelVideos.length > 0) {
+                const observer = new IntersectionObserver(handleIntersection, {
+                    threshold: 0.5 // 50% of the video must be visible
+                });
+                
+                reelVideos.forEach(video => {
+                    observer.observe(video);
+                    
+                    // Add manual play/pause on click
+                    video.addEventListener('click', function() {
+                        if (this.paused) {
+                            this.play();
+                        } else {
+                            this.pause();
+                        }
+                    });
+                });
+            }
+            
+            // ---------- PROFILE PICTURE UPLOAD ----------
+            // Preview image before upload
+            const profilePictureInput = document.querySelector('#profile_picture');
+            const profilePicturePreview = document.querySelector('#profile-picture-preview');
+            
+            if (profilePictureInput && profilePicturePreview) {
+                profilePictureInput.addEventListener('change', function() {
+                    const file = this.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            profilePicturePreview.src = e.target.result;
+                            profilePicturePreview.style.display = 'block';
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
             }
         });
-    }
-});
     </script>
     
-    <!-- Theme script (link to your new script) -->
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
 </body>
 </html>

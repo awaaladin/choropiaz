@@ -46,15 +46,38 @@ def create_app():
     from app.routes.auth import auth as auth_bp
     from app.routes.user import user as users_bp
     from app.routes.posts import views as views_bp
+    from app.routes.posts import notifications as notifications_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(users_bp)
     app.register_blueprint(views_bp)
+    app.register_blueprint(notifications_bp)
 
     @login_manager.user_loader
     def load_user(user_id):
         from app.models.models import User
         return User.query.get(int(user_id))
+
+    # Register 'timeago' filter for Jinja
+    from datetime import datetime
+    def timeago(dt):
+        now = datetime.utcnow()
+        diff = now - dt
+        seconds = diff.total_seconds()
+        if seconds < 60:
+            return f"{int(seconds)} seconds ago"
+        elif seconds < 3600:
+            minutes = int(seconds // 60)
+            return f"{minutes} minute{'s' if minutes != 1 else ''} ago"
+        elif seconds < 86400:
+            hours = int(seconds // 3600)
+            return f"{hours} hour{'s' if hours != 1 else ''} ago"
+        elif seconds < 604800:
+            days = int(seconds // 86400)
+            return f"{days} day{'s' if days != 1 else ''} ago"
+        else:
+            return dt.strftime('%Y-%m-%d')
+    app.jinja_env.filters['timeago'] = timeago
 
     # --- Socket.IO event handlers ---
     from flask_socketio import emit, join_room, leave_room

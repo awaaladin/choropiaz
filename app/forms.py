@@ -72,6 +72,9 @@ class ReelForm(FlaskForm):
         FileRequired(), 
         FileAllowed(['mp4', 'mov', 'avi', 'webm'], 'Video files only!')
     ])
+    audio = FileField('Add Music (optional)', validators=[
+        FileAllowed(['mp3', 'wav', 'aac', 'ogg'], 'Audio files only!')
+    ])
     description = TextAreaField('Reel Description', validators=[
         Optional(), 
         Length(max=300)

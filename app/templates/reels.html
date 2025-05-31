@@ -33,6 +33,8 @@
                 src="{{ url_for('static', filename=reel.media_path) }}" 
                 class="h-full w-full object-contain"
                 loop
+                muted
+                playsinline
                 onclick="togglePlayPause(this)"
                 poster="{{ url_for('static', filename=reel.media_path or 'default.jpg') }}">
             </video>
@@ -107,34 +109,31 @@
 </div>
 
 <script>
-// Auto-play video when in view
+// --- Improved Reels Video Playback ---
 document.addEventListener('DOMContentLoaded', function() {
     const videos = document.querySelectorAll('video');
     const container = document.getElementById('reels-scroll-container');
-    
-    // Play the first video on page load
-    if (videos.length > 0) {
-        videos[0].play();
-    }
-    
-    // Handle scroll to play/pause videos
-    container.addEventListener('scroll', function() {
-        const scrollPosition = container.scrollTop;
-        const windowHeight = window.innerHeight;
-        
-        videos.forEach((video) => {
-            const rect = video.getBoundingClientRect();
-            const inView = (
-                rect.top >= -windowHeight/2 && 
-                rect.top <= windowHeight/2
-            );
-            
-            if (inView) {
-                video.play();
+
+    // Ensure all videos are muted for autoplay compatibility
+    videos.forEach(video => {
+        video.muted = true;
+        video.setAttribute('playsinline', '');
+    });
+
+    // Use IntersectionObserver for reliable play/pause
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const video = entry.target;
+            if (entry.isIntersecting) {
+                video.play().catch(() => {});
             } else {
                 video.pause();
             }
         });
+    }, { threshold: 0.6 });
+
+    videos.forEach(video => {
+        observer.observe(video);
     });
 });
 

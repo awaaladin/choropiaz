@@ -61,18 +61,25 @@
                     maxlength="200") }}
             </div>
             
-            <!-- Music Option (For design, non-functional) -->
+            <!-- Music Option (Now functional) -->
             <div class="mb-6 p-4 border border-gray-200 rounded-lg">
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between mb-2">
                     <div class="flex items-center">
                         <i class="bi bi-music-note text-gray-500 text-xl mr-3"></i>
                         <div>
                             <p class="font-medium">Add Music</p>
-                            <p class="text-xs text-gray-500">Select a track for your reel</p>
+                            <p class="text-xs text-gray-500">Select a track for your reel (optional)</p>
                         </div>
                     </div>
-                    <i class="bi bi-chevron-right text-gray-400"></i>
                 </div>
+                {{ form.audio(class="w-full p-2 border border-gray-300 rounded-lg mt-2") }}
+                {% if form.audio.errors %}
+                    <div class="text-red-500 mt-2 text-sm">
+                        {% for error in form.audio.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
             
             <!-- Submit Button -->
