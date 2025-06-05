@@ -1,8 +1,8 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, session # Import session
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, session
 from flask_login import login_user, current_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
 import secrets
-import requests # Import requests for API calls
+import requests
 
 from app.extensions import db, oauth
 from app.models.models import User, Post # Assuming Post is in models.py and imported here
@@ -12,6 +12,7 @@ auth = Blueprint('auth', __name__)
 
 # Define the Django API login URL
 DJANGO_LOGIN_API_URL = "https://gax-2.onrender.com/api/login/"
+
 
 def init_oauth(app):
     oauth.init_app(app)
@@ -32,14 +33,14 @@ def init_oauth(app):
         access_token_url='https://graph.facebook.com/v19.0/oauth/access_token',
         authorize_url='https://www.facebook.com/v19.0/dialog/oauth',
         api_base_url='https://graph.facebook.com/v19.0/',
-        client_kwargs={'scope': 'email'},
+        client_kwargs={'scope': 'email public_profile'},
     )
 
-# --- Registration ---
+
 @auth.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('views.home')) # Changed from views.feed to views.home for consistency
+        return redirect(url_for('views.home'))
     form = RegisterForm()
     if form.validate_on_submit():
         username = form.username.data
@@ -54,8 +55,7 @@ def register():
             return render_template('register.html', form=form)
 
         hashed_password = generate_password_hash(password)
-        # Ensure 'password_hash' is the correct attribute for storing hashed passwords in your User model
-        new_user = User(username=username, email=email, password_hash=hashed_password) 
+        new_user = User(username=username, email=email, password_hash=hashed_password)
         db.session.add(new_user)
         db.session.commit()
         flash('Your account has been created! You can now login.', 'success')
@@ -66,52 +66,50 @@ def register():
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('views.home')) # Changed from views.feed to views.home for consistency
+        return redirect(url_for('views.home'))
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
-        # Assuming your User model uses 'password_hash' for hashed passwords
-        if user and check_password_hash(user.password_hash, form.password.data): 
+        if user and check_password_hash(user.password_hash if hasattr(user, 'password_hash') else user.password, form.password.data):
             login_user(user, remember=getattr(form, 'remember', False))
-            
-            # --- NEW: Attempt to log in to Django API and get token ---
+
+            # Attempt to login to Django API as well
             try:
-                django_login_data = {
-                    'username': user.username, # Use Flask user's username for Django login
-                    'password': form.password.data # Send the plain password to Django for token
+                login_payload = {
+                    "username": user.username,
+                    "password": form.password.data
                 }
-                django_response = requests.post(DJANGO_LOGIN_API_URL, json=django_login_data)
-                django_response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
-                
-                django_api_data = django_response.json()
-                if 'token' in django_api_data:
-                    session['django_token'] = django_api_data['token']
-                    print(f"Django Token obtained: {django_api_data['token']}") # For debugging
+                response = requests.post(DJANGO_LOGIN_API_URL, json=login_payload)
+                response.raise_for_status()
+                django_token = response.json().get("token")
+                if django_token:
+                    session['django_api_token'] = django_token
+                    print(f"Django API token obtained: {django_token[:10]}...")
                     flash('Successfully logged into banking service!', 'info')
                 else:
+                    print("Django API login successful, but no token received.")
                     flash('Logged into Flask, but could not get Django API token. Banking features may be limited.', 'warning')
-                    print(f"Django login response: {django_api_data}")
 
             except requests.exceptions.RequestException as e:
-                flash('Logged into Flask, but failed to connect to Django banking API. Banking features may be limited.', 'warning')
-                print(f"Error logging into Django API: {e}")
+                print(f"Failed to log in to Django API: {e}")
                 if hasattr(e, 'response') and e.response is not None:
-                    print(f"Django API error response: {e.response.text}")
-            # --- End Django API login attempt ---
+                    print(f"Django API response: {e.response.text}")
+                flash("Could not synchronize with banking system. Please contact support if issues persist.", "warning")
 
+
+            flash('You have been logged in!', 'success')
             next_page = request.args.get('next')
-            flash('Login successful!', 'success')
-            return redirect(next_page or url_for('views.home')) # Changed from views.feed to views.home for consistency
+            return redirect(next_page or url_for('views.home'))
         else:
-            flash('Login unsuccessful. Please check email and password.', 'danger')
+            flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', form=form)
 
-# --- Logout ---
 @auth.route('/logout')
 @login_required
 def logout():
     logout_user()
-    session.pop('django_token', None) # Clear Django token from session on logout
+    session.pop('django_token', None)
+    session.pop('django_api_token', None) # Clear Django API token from session
     flash('You have been logged out.', 'info')
     return redirect(url_for('auth.login'))
 
@@ -150,9 +148,11 @@ def authorize_google():
     user_info = resp.json()
     email = user_info.get('email')
     name = user_info.get('name')
+
     if not email:
         flash('Google authentication failed.', 'danger')
         return redirect(url_for('auth.login'))
+
     user = User.query.filter_by(email=email).first()
     if not user:
         username = (name or email.split('@')[0]).lower().replace(' ', '')
@@ -163,12 +163,17 @@ def authorize_google():
             count += 1
         random_password = secrets.token_urlsafe(16)
         hashed_password = generate_password_hash(random_password)
-        user = User(username=username, email=email, password_hash=hashed_password, oauth_provider='google') # Use password_hash
+        # Check if full_name is expected by the User model
+        if hasattr(User, 'full_name'):
+            user = User(username=username, email=email, password_hash=hashed_password, full_name=name, oauth_provider='google')
+        else:
+            user = User(username=username, email=email, password_hash=hashed_password, oauth_provider='google')
         db.session.add(user)
         db.session.commit()
+
     login_user(user, remember=True)
     flash('Logged in with Google!', 'success')
-    return redirect(url_for('views.home')) # Changed from views.feed to views.home for consistency
+    return redirect(url_for('views.home'))
 
 # --- Facebook OAuth ---
 @auth.route('/login/facebook')
@@ -196,9 +201,13 @@ def authorize_facebook():
             count += 1
         random_password = secrets.token_urlsafe(16)
         hashed_password = generate_password_hash(random_password)
-        user = User(username=username, email=email, password_hash=hashed_password, oauth_provider='facebook') # Use password_hash
+        # Check if full_name is expected by the User model
+        if hasattr(User, 'full_name'):
+            user = User(username=username, email=email, password_hash=hashed_password, full_name=name, oauth_provider='facebook')
+        else:
+            user = User(username=username, email=email, password_hash=hashed_password, oauth_provider='facebook')
         db.session.add(user)
         db.session.commit()
     login_user(user, remember=True)
     flash('Logged in with Facebook!', 'success')
-    return redirect(url_for('views.home')) # Changed from views.feed to views.home for consistency
+    return redirect(url_for('views.home'))
