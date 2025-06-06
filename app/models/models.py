@@ -41,6 +41,7 @@ class User(UserMixin, db.Model):
     posts = db.relationship('Post', backref='user', lazy=True, cascade="all, delete-orphan")
     comments = db.relationship('Comment', backref='user', lazy=True, cascade="all, delete-orphan")
     likes = db.relationship('Like', backref='user', lazy=True, cascade="all, delete-orphan")
+    profile = db.relationship('Profile', backref='user', uselist=False, cascade="all, delete-orphan") # One-to-one with Profile
 
     # Followers logic
     followed = db.relationship(
@@ -72,16 +73,28 @@ class User(UserMixin, db.Model):
         cascade='all, delete-orphan'
     )
 
+    # Banking relationships
+    bank_accounts = db.relationship('BankAccount', backref='user', lazy=True, cascade="all, delete-orphan")
+    transactions = db.relationship('Transaction', backref='user', lazy=True, cascade="all, delete-orphan")
+
+
     def get_notification_count(self):
-        from app.models.models import Notification
+        from app.models.models import Notification # Local import to prevent circular dependency
         return Notification.query.filter_by(recipient_id=self.id, is_read=False).count()
 
     def follow(self, user):
         if not self.is_following(user):
             self.followed.append(user)
-            # Create notification
+            # The notification logic here should be moved to the route or a service,
+            # as it imports from app.routes.posts, creating a circular dependency.
+            # For now, I'm keeping it but noting it as a potential refactor.
             from app.routes.posts import send_notification
             send_notification(recipient_id=user.id, type='follow', sender_id=self.id)
+
+    
+    def has_liked_post(self, post):
+        return Like.query.filter_by(user_id=self.id, post_id=post.id).first() is not None
+
 
     def unfollow(self, user):
         if self.is_following(user):
@@ -95,7 +108,7 @@ class User(UserMixin, db.Model):
             return {"app": True, "email": False, "likes": True, "comments": True, "follows": True, "mentions": True}
         try:
             return json.loads(self.notification_preferences)
-        except:
+        except json.JSONDecodeError: # Catch specific error for JSON decoding
             return {"app": True, "email": False, "likes": True, "comments": True, "follows": True, "mentions": True}
 
     # --- Messaging methods ---
@@ -111,10 +124,56 @@ class User(UserMixin, db.Model):
                 count += 1
         return count
 
+# --- Profile Model ---
+class Profile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False)
+    # Add any specific profile fields here not already in User
+    # For example:
+    phone_number = db.Column(db.String(20), nullable=True)
+    address = db.Column(db.String(200), nullable=True)
+    date_of_birth = db.Column(db.Date, nullable=True)
+
+    def __repr__(self):
+        return f'<Profile for {self.user.username}>'
+
+# --- BankAccount Model ---
+class BankAccount(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    account_name = db.Column(db.String(100), nullable=False)
+    account_number = db.Column(db.String(50), unique=True, nullable=False)
+    bank_name = db.Column(db.String(100), nullable=False)
+    balance = db.Column(db.Float, default=0.0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationship to transactions
+    transactions = db.relationship('Transaction', backref='bank_account', lazy=True, foreign_keys='Transaction.bank_account_id')
+
+    def __repr__(self):
+        return f'<BankAccount {self.account_number} for {self.user.username}>'
+
+
+# --- Transaction Model ---
+class Transaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    bank_account_id = db.Column(db.Integer, db.ForeignKey('bank_account.id'), nullable=True) # Optional: if linked to a specific account
+    amount = db.Column(db.Float, nullable=False)
+    transaction_type = db.Column(db.String(50), nullable=False) # e.g., 'deposit', 'withdrawal', 'transfer', 'purchase'
+    description = db.Column(db.String(200), nullable=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='completed') # e.g., 'pending', 'completed', 'failed'
+
+    def __repr__(self):
+        return f'<Transaction {self.id} - {self.transaction_type} {self.amount}>'
+
+
 # --- Post Model ---
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.String(500), nullable=True)
+    caption = db.Column(db.String(500), nullable=True) # Changed from 'content' to 'caption'
     media_path = db.Column(db.String(255), nullable=True)
     media_type = db.Column(db.String(20), nullable=True)
     category = db.Column(Enum(Category, values_callable=lambda obj: [e.value for e in obj], native_enum=False), nullable=True)
@@ -146,21 +205,22 @@ class Comment(db.Model):
     notifications = db.relationship('Notification', backref='comment', lazy=True,
                                     foreign_keys='Notification.comment_id', cascade="all, delete-orphan")
 
-    def save(self):
-        db.session.add(self)
-        db.session.commit()
-        # Create notification
-        from app.routes.posts import send_notification, process_mentions
-        post = Post.query.get(self.post_id)
-        if post and post.user_id != self.user_id:
-            send_notification(
-                recipient_id=post.user_id,
-                type='comment',
-                sender_id=self.user_id,
-                post_id=self.post_id,
-                comment_id=self.id
-            )
-        process_mentions(self.content, self.post_id, self.user_id)
+    # Removed the save() method to avoid circular imports and handle commit in routes/services
+    # def save(self):
+    #     db.session.add(self)
+    #     db.session.commit()
+    #     from app.routes.posts import send_notification, process_mentions
+    #     post = Post.query.get(self.post_id)
+    #     if post and post.user_id != self.user_id:
+    #         send_notification(
+    #             recipient_id=post.user_id,
+    #             type='comment',
+    #             sender_id=self.user_id,
+    #             post_id=self.post_id,
+    #             comment_id=self.id
+    #         )
+    #     process_mentions(self.content, self.post_id, self.user_id)
+
 
 # --- Like Model ---
 class Like(db.Model):
@@ -169,19 +229,19 @@ class Like(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
 
-    def save(self):
-        db.session.add(self)
-        db.session.commit()
-        # Create notification
-        from app.routes.posts import send_notification
-        post = Post.query.get(self.post_id)
-        if post and post.user_id != self.user_id:
-            send_notification(
-                recipient_id=post.user_id,
-                type='like',
-                sender_id=self.user_id,
-                post_id=self.post_id
-            )
+    # Removed the save() method to avoid circular imports and handle commit in routes/services
+    # def save(self):
+    #     db.session.add(self)
+    #     db.session.commit()
+    #     from app.routes.posts import send_notification
+    #     post = Post.query.get(self.post_id)
+    #     if post and post.user_id != self.user_id:
+    #         send_notification(
+    #             recipient_id=post.user_id,
+    #             type='like',
+    #             sender_id=self.user_id,
+    #             post_id=self.post_id
+    #         )
 
 # --- Notification Model ---
 class Notification(db.Model):
@@ -205,7 +265,7 @@ class Notification(db.Model):
             'type': self.type,
             'message': self.message,
             'sender_name': sender.username if sender else 'System',
-            'sender_avatar': f'/static/profile_pics/{sender.profile_picture}' if sender else '/static/profile_pics/default.jpg',
+            'sender_avatar': f'/static/profile_pics/{sender.profile_picture}' if sender and sender.profile_picture else '/static/profile_pics/default.jpg',
             'preview_text': self.preview_text,
             'link': self.link,
             'timestamp': self.timestamp.isoformat(),

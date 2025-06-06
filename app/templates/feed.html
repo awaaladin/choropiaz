@@ -11,874 +11,558 @@
               <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-xl mr-3">🏠</div>
               <span class="font-medium">Home</span>
             </a>
-            <a href="{{ url_for('auth.user_profile', username=current_user.username) }}" class="flex items-center p-3 rounded-lg hover:bg-blue-800 transition">
+            <a href="{{ url_for('views.profile') }}" class="flex items-center p-3 rounded-lg hover:bg-blue-800 transition">
               <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-xl mr-3">👤</div>
               <span class="font-medium">Profile</span>
             </a>
-            <a href="{{ url_for('auth.logout') }}" class="flex items-center p-3 rounded-lg hover:bg-red-800 transition">
-              <div class="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center text-white text-xl mr-3">🚪</div>
-              <span class="font-medium">Logout</span>
+            <a href="{{ url_for('views.create_post') }}" class="flex items-center p-3 rounded-lg hover:bg-blue-800 transition">
+              <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-xl mr-3">➕</div>
+              <span class="font-medium">Create Post</span>
             </a>
-            <a href="{{ 'https://gax-2.onrender.com/accounts/dashboard/' }}" target="_blank" class="flex items-center p-3 rounded-lg hover:bg-green-800 transition">
-              <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white text-xl mr-3">💰</div>
-              <span class="font-medium">Banking Dashboard</span>
+            <a href="{{ url_for('views.reels') }}" class="flex items-center p-3 rounded-lg hover:bg-blue-800 transition">
+              <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-xl mr-3">🎞️</div>
+              <span class="font-medium">Reels</span>
+            </a>
+            <a href="{{ url_for('messages.inbox') }}" class="flex items-center p-3 rounded-lg hover:bg-blue-800 transition">
+              <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-xl mr-3">✉️</div>
+              <span class="font-medium">Messages</span>
+            </a>
+            <a href="{{ url_for('notifications.view_notifications') }}" class="flex items-center p-3 rounded-lg hover:bg-blue-800 transition relative">
+              <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-xl mr-3">🔔</div>
+              <span class="font-medium">Notifications</span>
+              <span id="notification-count" class="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full"></span>
+            </a>
+            <a href="{{ url_for('views.settings') }}" class="flex items-center p-3 rounded-lg hover:bg-blue-800 transition">
+              <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-xl mr-3">⚙️</div>
+              <span class="font-medium">Settings</span>
+            </a>
+            <a href="{{ url_for('auth.logout') }}" class="flex items-center p-3 rounded-lg hover:bg-blue-800 transition">
+              <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-xl mr-3">🚪</div>
+              <span class="font-medium">Logout</span>
             </a>
           </div>
         </div>
       </div>
-      <div class="w-full md:w-3/4 lg:w-4/5 space-y-4">
-        <div class="bg-gray-800 rounded-xl shadow-lg p-4 border border-gray-700">
-          <h2 class="text-xl font-bold mb-4">Your Banking Overview</h2>
-          {% if bank_data %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="bg-gray-700 p-4 rounded-lg">
-                <p class="text-gray-300">Account Balance:</p>
-                <p class="text-2xl font-bold text-green-400">₦{{ bank_data.bank_account.balance|default('0.00') }}</p>
-              </div>
-              <div class="bg-gray-700 p-4 rounded-lg">
-                <p class="text-gray-300">Recent Transactions:</p>
-                <ul class="list-disc list-inside text-sm">
-                  {% for transaction in bank_data.recent_transactions %}
-                    <li>{{ transaction.transaction_type|capitalize }}: ₦{{ transaction.amount }} ({{ transaction.timestamp[:10] }})</li>
-                  {% else %}
-                    <li>No recent transactions.</li>
-                  {% endfor %}
-                </ul>
-              </div>
-            </div>
-            <div class="mt-4 flex flex-col sm:flex-row gap-3">
-              <button onclick="openSendMoneyModal()" class="flex-1 bg-blue-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-blue-700 transition">
-                Send Money
-              </button>
-              <a href="{{ 'https://gax-2.onrender.com/accounts/deposit/' }}" target="_blank" class="flex-1 text-center bg-green-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-green-700 transition">
-                Deposit Funds
-              </a>
-            </div>
-          {% else %}
-            <p class="text-gray-400">Could not load banking data. Please ensure you are logged into the banking app.</p>
-            <a href="{{ 'https://gax-2.onrender.com/accounts/login/' }}" target="_blank" class="mt-2 inline-block bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition">
-              Login to Banking App
-            </a>
-          {% endif %}
-        </div>
-        
-        <div class="bg-gray-800 rounded-xl shadow-lg p-4 border border-gray-700">
-          <h2 class="text-xl font-bold mb-4">Create a New Post</h2>
-          <form id="create-post-form" action="{{ url_for('views.create_post') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
-            <div class="flex items-start space-x-4">
-              <a href="{{ url_for('auth.user_profile', username=current_user.username) }}">
-                <img src="{{ url_for('static', filename='profile_pics/' + current_user.profile_picture) }}" alt="Your Profile" class="w-10 h-10 rounded-full object-cover border-2 border-blue-500">
-              </a>
-              <textarea name="caption" placeholder="What are you offering today?" class="w-full p-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required></textarea>
-            </div>
-            <div class="flex flex-col md:flex-row gap-3">
-              <select name="category" class="bg-gray-700 text-white p-3 rounded-lg border border-gray-600" required>
-                <option value="">Select Category</option>
-                <option value="goods">🛍️ Goods</option>
-                <option value="services">🚲 Services</option>
-                <option value="info">ℹ️ Info</option>
-              </select>
-              <div class="flex items-center gap-2 flex-wrap flex-1">
-                <label class="flex items-center bg-gray-700 hover:bg-gray-600 py-2 px-4 rounded-lg cursor-pointer transition">
-                  <span class="text-lg mr-2">🖼️</span><span>Photo</span>
-                  <input type="file" name="image" accept="image/*" class="hidden">
-                </label>
-                <label class="flex items-center bg-gray-700 hover:bg-gray-600 py-2 px-4 rounded-lg cursor-pointer transition">
-                  <span class="text-lg mr-2">🎮</span><span>Video</span>
-                  <input type="file" name="video" accept="video/*" class="hidden">
-                </label>
-                <button type="submit" class="ml-auto bg-blue-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-blue-700 transition">Post</button>
-              </div>
-            </div>
-            <div id="media-preview" class="hidden"></div>
-          </form>
-        </div>
-        <div class="bg-gray-800 rounded-xl shadow-lg p-4 border border-gray-700">
-          <h3 class="text-lg font-bold mb-4">Top Weekly Highlights</h3>
-          <div class="space-y-4">
-            {% for category, story_posts in top_weekly_posts.items() %}
-              <div class="story-category">
-                <h4 class="font-medium text-blue-300 mb-2">{{ category }}</h4>
-                <div class="story-carousel flex overflow-x-auto gap-3 pb-2" id="carousel-{{ category }}">
-                  {% for post in story_posts %}
-                    <div class="story-item flex-shrink-0 w-24 h-40 rounded-xl overflow-hidden cursor-pointer relative {% if post.is_new %}new-story{% endif %}"
-                      onclick="openStoryModal('{{ post.media_type }}', '{{ url_for('static', filename=post.media_path or 'default.jpg') }}', '{{ post.user.username }}')">
-                      {% if post.media_type == 'image' %}
-                        <img src="{{ url_for('static', filename=post.media_path) }}" alt="Story Image" class="w-full h-full object-cover">
-                      {% elif post.media_type == 'video' %}
-                        <video autoplay muted loop class="w-full h-full object-cover">
-                          <source src="{{ url_for('static', filename=post.media_path) }}" type="video/mp4">
-                        </video>
-                      {% endif %}
-                      <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                      <div class="absolute bottom-0 left-0 right-0 p-2">
-                        <a href="{{ url_for('auth.user_profile', username=post.user.username) }}" class="text-white text-xs font-medium truncate block">View Profile</a>
-                      </div>
-                    </div>
-                  {% endfor %}
+
+      <div class="w-full md:w-3/4 lg:w-3/5">
+        <div class="bg-gray-800 rounded-xl shadow-lg p-4 mb-4 border border-gray-700">
+          <h2 class="text-xl font-bold mb-4">Top Weekly Highlights by Category</h2>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {% for category, posts_in_category in top_weekly_posts.items() %}
+              {% if posts_in_category %}
+                <div class="story-item relative w-full h-32 bg-cover bg-center rounded-lg overflow-hidden shadow-lg transition-transform duration-300 ease-in-out transform hover:scale-105"
+                     style="background-image: url('{{ url_for('static', filename=posts_in_category[0].media_path) if posts_in_category[0].media_path else url_for('static', filename='default.jpg') }}');">
+                  <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
+                  <div class="absolute bottom-2 left-2 right-2 text-white p-1">
+                    <p class="text-sm font-semibold truncate">{{ category }}</p>
+                    <p class="text-xs">{{ posts_in_category[0].caption[:20] }}...</p>
+                    <a href="{{ url_for('views.user_profile', username=posts_in_category[0].user.username) }}" class="text-white text-xs font-medium truncate block">View Profile</a>
+                  </div>
                 </div>
-              </div>
+              {% endif %}
             {% endfor %}
           </div>
         </div>
-        <div class="bg-gray-800 rounded-xl shadow-lg p-4 border border-gray-700">
-          <div class="flex flex-col sm:flex-row gap-4 justify-between">
-            <div class="flex gap-2 overflow-x-auto pb-2">
-              <a href="{{ url_for('views.feed', sort='recent') }}" class="py-2 px-4 rounded-full {% if sort == 'recent' %}bg-blue-600{% else %}bg-gray-700 hover:bg-gray-600{% endif %} transition whitespace-nowrap">Recent</a>
-              <a href="{{ url_for('views.feed', sort='likes') }}" class="py-2 px-4 rounded-full {% if sort == 'likes' %}bg-blue-600{% else %}bg-gray-700 hover:bg-gray-600{% endif %} transition whitespace-nowrap">Most Liked</a>
-              <a href="{{ url_for('views.feed', sort='trending') }}" class="py-2 px-4 rounded-full {% if sort == 'trending' %}bg-blue-600{% else %}bg-gray-700 hover:bg-gray-600{% endif %} transition whitespace-nowrap">Trending</a>
+        
+        <div class="bg-gray-800 rounded-xl shadow-lg p-4 mb-4 border border-gray-700">
+          <div class="flex items-center mb-4">
+            <img src="{{ url_for('static', filename='profile_pics/' + current_user.profile_picture) }}" alt="Profile" class="w-10 h-10 rounded-full mr-3">
+            <a href="{{ url_for('views.profile') }}" class="font-semibold text-lg">{{ current_user.username }}</a>
+          </div>
+          <form id="create-post-form" method="POST" action="{{ url_for('views.create_post') }}" enctype="multipart/form-data">
+            <textarea name="content" placeholder="What's on your mind, {{ current_user.username }}?" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 text-white mb-3"></textarea>
+            
+            <div class="mb-3">
+                <label for="category" class="block text-sm font-medium text-gray-400 mb-1">Category</label>
+                <select id="category" name="category" class="w-full p-2 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 text-white">
+                    {% for category_name, category_value in form.category.choices %}
+                        <option value="{{ category_name }}" {% if loop.index == 1 %}selected{% endif %}>{{ category_value }}</option>
+                    {% endfor %}
+                </select>
             </div>
-            <form method="GET" action="{{ url_for('views.feed') }}" class="flex w-full sm:w-auto">
-              <input type="text" name="search" placeholder="Search posts..." value="{{ search_query or '' }}" class="flex-1 rounded-l-full py-2 px-4 border border-gray-600 bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <button type="submit" class="bg-blue-600 text-white rounded-r-full px-4 hover:bg-blue-700 transition">🔍</button>
-            </form>
-          </div>
-          <div class="flex gap-2 mt-4 overflow-x-auto pb-2">
-            <a href="{{ url_for('views.feed') }}" class="py-2 px-4 rounded-full font-medium {{ 'bg-blue-600 text-white' if not search_query else 'bg-gray-700 hover:bg-gray-600' }} transition">🔄 All</a>
-            <a href="{{ url_for('views.feed', search='Goods') }}" class="py-2 px-4 rounded-full font-medium {{ 'bg-blue-600 text-white' if search_query == 'Goods' else 'bg-gray-700 hover:bg-gray-600' }} transition">🛒 Goods</a>
-            <a href="{{ url_for('views.feed', search='Services') }}" class="py-4 rounded-full font-medium {{ 'bg-blue-600 text-white' if search_query == 'Services' else 'bg-gray-700 hover:bg-gray-600' }} transition">🛠️ Services</a>
-            <a href="{{ url_for('views.feed', search='Info') }}" class="py-2 px-4 rounded-full font-medium {{ 'bg-blue-600 text-white' if search_query == 'Info' else 'bg-gray-700 hover:bg-gray-600' }} transition">ℹ️ Info</a>
-          </div>
+
+            <div class="mb-3">
+                <label for="media_upload" class="block text-sm font-medium text-gray-400 mb-1">Upload Media</label>
+                <input type="file" id="media_upload" name="media" accept="image/*,video/*" class="w-full text-white bg-gray-700 rounded-lg border border-gray-600 p-2 cursor-pointer">
+                <input type="hidden" id="media_type" name="media_type" value="">
+            </div>
+
+            <div class="flex items-center mb-3">
+                <input type="checkbox" id="is_purchasable" name="is_purchasable" class="mr-2 form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out">
+                <label for="is_purchasable" class="text-sm font-medium text-gray-400">Make Purchasable?</label>
+            </div>
+
+            <div id="price_field" class="mb-3 hidden">
+                <label for="price" class="block text-sm font-medium text-gray-400 mb-1">Price ($)</label>
+                <input type="number" id="price" name="price" step="0.01" class="w-full p-2 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 text-white" placeholder="e.g., 9.99">
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Post</button>
+          </form>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {% for post in posts %}
-            <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700 transition hover:shadow-xl">
-              <div class="p-4 flex items-start gap-3">
-                <a href="{{ url_for('auth.user_profile', username=post.user.username) }}">
-                  <img src="{{ url_for('static', filename='profile_pics/' + post.user.profile_picture) }}" class="w-12 h-12 rounded-full object-cover border-2 border-blue-500" alt="Profile picture">
-                </a>
-                <div class="flex-1">
-                  <div class="flex justify-between items-start">
-                    <div>
-                      <a href="{{ url_for('auth.user_profile', username=post.user.username) }}" class="font-bold hover:underline text-blue-300">@{{ post.user.username }}</a>
-                      <div class="text-gray-400 text-sm">
-                        {{ post.timestamp.strftime('%b %d, %Y') }} 
-                        {% if post.category %}
-                          · <span class="bg-blue-900 text-blue-200 text-xs font-medium px-2 py-0.5 rounded">{{ post.category }}</span>
-                        {% endif %}
-                      </div>
-                    </div>
-                    {% if post.user != current_user %}
-                    <form method="POST" action="{{ url_for('views.follow_user', user_id=post.user.id) }}">
-                      <button class="bg-blue-600 text-white text-sm font-medium py-1 px-4 rounded-full hover:bg-blue-700 transition">Follow</button>
-                    </form>
+
+        <div class="flex justify-between items-center bg-gray-800 rounded-xl shadow-lg p-4 mb-4 border border-gray-700">
+            <div class="sort-options">
+                <span class="text-gray-400 mr-2">Sort by:</span>
+                <a href="{{ url_for('views.home', sort='recent', search=search_query) }}" class="px-3 py-1 rounded-full text-sm {% if sort == 'recent' %}bg-blue-600{% else %}bg-gray-700 hover:bg-gray-600{% endif %}">Recent</a>
+                <a href="{{ url_for('views.home', sort='likes', search=search_query) }}" class="ml-2 px-3 py-1 rounded-full text-sm {% if sort == 'likes' %}bg-blue-600{% else %}bg-gray-700 hover:bg-gray-600{% endif %}">Likes</a>
+                <a href="{{ url_for('views.home', sort='trending', search=search_query) }}" class="ml-2 px-3 py-1 rounded-full text-sm {% if sort == 'trending' %}bg-blue-600{% else %}bg-gray-700 hover:bg-gray-600{% endif %}">Trending</a>
+            </div>
+            <div class="search-bar">
+                <form action="{{ url_for('views.home') }}" method="GET" class="flex items-center">
+                    <input type="text" name="search" placeholder="Search posts..." class="p-2 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500 text-white" value="{{ search_query or '' }}">
+                    <button type="submit" class="ml-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg">Search</button>
+                    {% if sort %}
+                        <input type="hidden" name="sort" value="{{ sort }}">
                     {% endif %}
-                  </div>
-                </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="posts-container">
+          {% for post in posts %}
+          <div class="post-card bg-gray-800 rounded-xl shadow-lg p-4 mb-4 border border-gray-700 animate-fadeIn" data-post-id="{{ post.id }}">
+            <div class="flex items-center mb-3">
+              <img src="{{ url_for('static', filename='profile_pics/' + post.user.profile_picture) }}" alt="Profile" class="w-12 h-12 rounded-full mr-3">
+              <div>
+                <a href="{{ url_for('views.user_profile', username=post.user.username) }}" class="font-semibold text-lg hover:underline">{{ post.user.username }}</a>
+                <p class="text-gray-400 text-sm">{{ post.timestamp.strftime('%B %d, %Y at %H:%M') }}</p>
               </div>
-              <div class="px-4 pb-3">
-                <p>{{ post.caption }}</p>
-                {% if post.is_purchasable %}
-                <div class="mt-2">
-                  <button class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-lg transition" 
-                          onclick="buyItem('{{ post.id }}', {{ post.price }})">
-                    Buy for ₦{{ post.price }}
-                  </button>
-                </div>
+              <div class="ml-auto flex items-center">
+                {% if post.user.id != current_user.id %}
+                <button class="follow-button px-3 py-1 rounded-full text-sm font-medium transition-colors duration-200
+                  {% if is_following and user.id == post.user.id %} bg-blue-600 text-white {% else %} bg-gray-700 text-gray-300 hover:bg-blue-600 hover:text-white {% endif %}"
+                  data-user-id="{{ post.user.id }}">
+                  {% if current_user.is_following(post.user) %} Unfollow {% else %} Follow {% endif %}
+                </button>
                 {% endif %}
               </div>
-              <div class="media-container relative">
-                <a href="{{ url_for('views.view_post', post_id=post.id) }}">
-                  {% if post.media_type == 'image' %}
-                    <img src="{{ url_for('static', filename=post.media_path or 'default.jpg') }}" 
-                         alt="Post Image" 
-                         class="w-full h-64 object-cover"
-                         onerror="this.onerror=null;this.src='/static/default.jpg';">
-                  {% elif post.media_type == 'video' %}
-                    <video controls class="w-full h-64 object-cover" poster="{{ url_for('static', filename='thumbnails/' + post.id|string + '.jpg') if post.media_type == 'video' else url_for('static', filename='default-thumbnail.jpg') }}">
-                      <source src="{{ url_for('static', filename=post.media_path) }}" type="video/mp4">
-                      Your browser does not support the video tag.
-                    </video>
-                  {% endif %}
-                </a>
-              </div>
-              <div class="px-4 py-3 border-t border-gray-700">
-                <div class="flex gap-4">
-                  <form method="POST" action="{{ url_for('views.like_post', post_id=post.id) }}" class="flex-1">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                    <button type="submit" class="w-full flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-gray-700 transition">
-                      <span class="text-xl">❤️</span>
-                      <span>{{ post.likes|length }}</span>
-                    </button>
-                  </form>
-                  <a href="{{ url_for('views.comment_post', post_id=post.id) }}" class="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-gray-700 transition">
-                    <span class="text-xl">💬</span>
-                    <span>{{ post.comments|length }}</span>
-                  </a>
-                  <button class="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-gray-700 transition">
-                    <span class="text-xl">🔗</span>
-                    <span>Share</span>
-                  </button>
-                  {% if post.user == current_user %}
-                    <button onclick="openModal('{{ post.id }}')" class="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-red-900 transition text-red-400">
-                      <span class="text-xl">🗑️</span>
-                      <span>Delete</span>
-                    </button>
-                  {% endif %}
+            </div>
+            <p class="text-gray-200 mb-3">{{ post.caption }}</p>
+            {% if post.media_path %}
+              {% if post.media_type == 'image' %}
+                <img data-src="{{ url_for('static', filename=post.media_path) }}" alt="Post Image" class="w-full rounded-lg mb-3 lazyload">
+              {% elif post.media_type == 'video' %}
+                <div class="relative mb-3 video-container">
+                  <video data-src="{{ url_for('static', filename=post.media_path) }}" class="w-full rounded-lg lazyload" controls preload="none"></video>
+                  <div class="play-button absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white text-5xl rounded-lg cursor-pointer">▶</div>
                 </div>
+              {% endif %}
+            {% endif %}
+
+            {% if post.is_purchasable and post.price %}
+            <div class="flex items-center justify-between bg-gray-700 p-3 rounded-lg mb-3">
+              <span class="text-lg font-bold text-green-400">${{ "%.2f"|format(post.price) }}</span>
+              <button class="buy-item-button bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
+                      data-post-id="{{ post.id }}"
+                      data-post-name="{{ post.caption }}"
+                      data-post-price="{{ (post.price * 100) | int }}">
+                Buy Now
+              </button>
+            </div>
+            {% endif %}
+
+            <div class="flex items-center justify-between text-gray-400 text-sm mb-3">
+              <div class="flex items-center space-x-4">
+                <button class="flex items-center space-x-1 like-button {% if current_user.has_liked_post(post) %}text-blue-500{% else %}hover:text-blue-400{% endif %}" data-post-id="{{ post.id }}">
+                  <i class="fas fa-heart"></i>
+                  <span class="likes-count">{{ post.likes|length }}</span>
+                </button>
+                <a href="{{ url_for('views.view_post', post_id=post.id) }}" class="flex items-center space-x-1 hover:text-blue-400">
+                  <i class="fas fa-comment"></i>
+                  <span>{{ post.comments|length }}</span>
+                </a>
+                <button class="flex items-center space-x-1 hover:text-blue-400">
+                  <i class="fas fa-share"></i>
+                  <span>Share</span>
+                </button>
+              </div>
+              <div>
+                  <span>{{ post.views or 0 }} Views</span>
               </div>
             </div>
-            {% if post.user == current_user %}
-              <div id="modal-{{ post.id }}" class="modal hidden fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center">
-                <div class="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 border border-gray-700">
-                  <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-bold">Confirm Deletion</h3>
-                    <button onclick="closeModal('{{ post.id }}')" class="text-gray-400 hover:text-gray-200">
-                      <span class="text-2xl">&times;</span>
-                    </button>
-                  </div>
-                  <p class="mb-4">Are you sure you want to delete this post? This action cannot be undone.</p>
-                  <form method="POST" action="{{ url_for('views.delete_post', post_id=post.id) }}" class="space-y-4">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                    <input type="password" name="password" placeholder="Enter your password to confirm" required class="w-full p-3 border border-gray-700 bg-gray-700 text-white rounded-lg">
-                    <div class="flex justify-end gap-3">
-                      <button type="button" onclick="closeModal('{{ post.id }}')" class="py-2 px-4 border border-gray-600 rounded-lg hover:bg-gray-700 transition">Cancel</button>
-                      <button type="submit" class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition">Delete Post</button>
+
+            <div class="comments-section">
+                {% for comment in post.comments | sort(attribute='timestamp', reverse=True) %}
+                    <div class="flex items-start mb-2">
+                        <img src="{{ url_for('static', filename='profile_pics/' + comment.user.profile_picture) }}" alt="Profile" class="w-8 h-8 rounded-full mr-2 mt-1">
+                        <div>
+                            <p class="text-gray-300"><a href="{{ url_for('views.user_profile', username=comment.user.username) }}" class="font-semibold hover:underline">{{ comment.user.username }}</a> {{ comment.content }}</p>
+                            <p class="text-gray-500 text-xs">{{ comment.timestamp.strftime('%b %d, %Y') }}</p>
+                        </div>
                     </div>
-                  </form>
-                </div>
-              </div>
-            {% endif %}
-          {% endfor %}
-        </div>
-       <nav class="block md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
-          <div class="flex justify-around">
-            {% if current_user.is_authenticated %}
-              <a href="{{ url_for('views.home') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
-                <i class="bi bi-house-door text-xl"></i>
-              </a>
-              <a href="{{ url_for('views.reels') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
-                <i class="bi bi-camera-reels text-xl"></i>
-              </a>
-              <a href="{{ url_for('messages.inbox') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue relative">
-                    <i class="bi bi-chat-dots text-xl"></i>
-                    {% if current_user.get_unread_message_count() > 0 %}
-                        <span class="absolute top-1 left-5 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                            {{ current_user.get_unread_message_count() }}
-                        </span>
-                    {% endif %}
-                </a>
-              <a href="{{ url_for('views.profile') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
-                <i class="bi bi-person-circle text-xl"></i>
-              </a>
-            {% else %}
-              <a href="{{ url_for('auth.login') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
-                <i class="bi bi-box-arrow-in-right text-xl"></i>
-                <span class="text-xs">Login</span>
-              </a>
-              <a href="{{ url_for('auth.register') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
-                <i class="bi bi-person-plus text-xl"></i>
-                <span class="text-xs">Register</span>
-              </a>
+                {% endfor %}
+                <form action="{{ url_for('views.comment_post', post_id=post.id) }}" method="POST" class="flex items-center mt-3">
+                    <input type="text" name="comment_content" placeholder="Add a comment..." class="w-full p-2 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 text-white text-sm">
+                    <button type="submit" class="ml-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">Comment</button>
+                </form>
+            </div>
+            {% if post.user.id == current_user.id %}
+            <div class="mt-4 flex justify-end">
+                <form action="{{ url_for('views.delete_post', post_id=post.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this post?');">
+                    <button type="submit" class="text-red-500 hover:text-red-600 text-sm">Delete Post</button>
+                </form>
+            </div>
             {% endif %}
           </div>
-        </nav>
+          {% else %}
+          <p class="text-center text-gray-400">No posts to display. Be the first to post!</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="w-full md:w-1/4 lg:w-1/5 hidden lg:block">
+        <div class="bg-gray-800 rounded-xl shadow-lg p-4 sticky top-4 border border-gray-700">
+          <h2 class="text-xl font-bold mb-4">Account Dashboard</h2>
+          {% if bank_data %}
+            <div class="space-y-3 text-sm">
+              <p class="flex justify-between items-center">
+                <span>Account Number:</span>
+                <span class="font-semibold">{{ bank_data.account_number }}</span>
+              </p>
+              <p class="flex justify-between items-center">
+                <span>Account Balance:</span>
+                <span class="font-semibold text-green-400">${{ "%.2f"|format(bank_data.balance) }}</span>
+              </p>
+              <p class="flex justify-between items-center">
+                <span>Card Number:</span>
+                <span class="font-semibold">{{ bank_data.card_number }}</span>
+              </p>
+              <div class="flex justify-around mt-4">
+                <a href="{{ DJANGO_WEB_APP_BASE_URL }}/accounts/deposit/" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg text-xs">Deposit</a>
+                <button type="button" onclick="openSendMoneyModal()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3 rounded-lg text-xs">Send Money</button>
+              </div>
+            </div>
+          {% else %}
+            <p class="text-gray-400 text-sm">Banking details not available. <a href="{{ DJANGO_WEB_APP_BASE_URL }}/accounts/login/" target="_blank" class="text-blue-500 hover:underline">Link your account.</a></p>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<div id="sendMoneyModal" class="modal hidden fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center">
-  <div class="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 border border-gray-700">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-xl font-bold">Send Money</h3>
-      <button onclick="closeSendMoneyModal()" class="text-gray-400 hover:text-gray-200">
-        <span class="text-2xl">&times;</span>
-      </button>
-    </div>
-    <form id="send-money-form" action="{{ url_for('views.send_money') }}" method="POST" class="space-y-4">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-      <div>
-        <label for="recipient_account_number" class="block text-gray-300 text-sm font-medium mb-1">Recipient Account Number (Phone Number)</label>
-        <input type="text" id="recipient_account_number" name="recipient_account_number" placeholder="e.g., 08012345678" required class="w-full p-3 border border-gray-700 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-      </div>
-      <div>
-        <label for="amount" class="block text-gray-300 text-sm font-medium mb-1">Amount (₦)</label>
-        <input type="number" id="amount" name="amount" step="0.01" min="0.01" placeholder="e.g., 1000.00" required class="w-full p-3 border border-gray-700 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-      </div>
-      <div>
-        <label for="details" class="block text-gray-300 text-sm font-medium mb-1">Details (Optional)</label>
-        <textarea id="details" name="details" rows="2" placeholder="e.g., For groceries" class="w-full p-3 border border-gray-700 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-      </div>
-      <div class="flex justify-end gap-3">
-        <button type="button" onclick="closeSendMoneyModal()" class="py-2 px-4 border border-gray-600 rounded-lg hover:bg-gray-700 transition">Cancel</button>
-        <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition">Send</button>
-      </div>
-    </form>
+<div class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 md:hidden z-50">
+  <div class="flex justify-around items-center h-16">
+    <a href="{{ url_for('views.home') }}" class="py-3 flex flex-col items-center text-blue-500">
+      <i class="fas fa-home text-xl"></i>
+      <span class="text-xs">Home</span>
+    </a>
+    <a href="{{ url_for('views.reels') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
+      <i class="fas fa-film text-xl"></i>
+      <span class="text-xs">Reels</span>
+    </a>
+    <button onclick="openCreatePostModal()" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
+      <i class="fas fa-plus-circle text-xl"></i>
+      <span class="text-xs">Post</span>
+    </button>
+    <a href="{{ url_for('messages.inbox') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
+      <i class="fas fa-envelope text-xl"></i>
+      <span class="text-xs">Messages</span>
+    </a>
+    <a href="{{ url_for('views.profile') }}" class="py-3 flex flex-col items-center text-choropia-secondary hover:text-choropia-blue">
+      <i class="fas fa-user-circle text-xl"></i>
+      <span class="text-xs">Profile</span>
+    </a>
   </div>
 </div>
 
-<div id="storyModal" class="modal hidden fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center">
-  <button onclick="closeStoryModal()" class="absolute top-4 right-4 text-white text-4xl">&times;</button>
-  <div class="max-w-2xl w-full max-h-screen">
-    <img id="modalImage" src="" alt="Story Full View" class="hidden max-h-screen max-w-full mx-auto">
-    <video id="modalVideo" controls class="hidden max-h-screen max-w-full mx-auto"></video>
-    <div class="absolute bottom-10 left-0 right-0 text-center">
-      <a id="storyProfileLink" href="#" class="bg-blue-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-blue-700 transition">View Profile</a>
+<div id="createPostModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+    <div class="bg-gray-800 rounded-lg p-6 w-11/12 md:w-1/2 lg:w-1/3 relative text-white border border-gray-700">
+        <button onclick="closeCreatePostModal()" class="absolute top-3 right-3 text-gray-400 hover:text-white text-xl">&times;</button>
+        <h2 class="text-2xl font-bold mb-4">Create New Post</h2>
+        <form id="modal-create-post-form" method="POST" action="{{ url_for('views.create_post') }}" enctype="multipart/form-data">
+            <textarea name="content" placeholder="What's on your mind, {{ current_user.username }}?" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 text-white mb-3"></textarea>
+            
+            <div class="mb-3">
+                <label for="modal_category" class="block text-sm font-medium text-gray-400 mb-1">Category</label>
+                <select id="modal_category" name="category" class="w-full p-2 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 text-white">
+                    {% for category_name, category_value in form.category.choices %}
+                        <option value="{{ category_name }}" {% if loop.index == 1 %}selected{% endif %}>{{ category_value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="modal_media_upload" class="block text-sm font-medium text-gray-400 mb-1">Upload Media</label>
+                <input type="file" id="modal_media_upload" name="media" accept="image/*,video/*" class="w-full text-white bg-gray-700 rounded-lg border border-gray-600 p-2 cursor-pointer">
+                <input type="hidden" id="modal_media_type" name="media_type" value="">
+            </div>
+
+            <div class="flex items-center mb-3">
+                <input type="checkbox" id="modal_is_purchasable" name="is_purchasable" class="mr-2 form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out">
+                <label for="modal_is_purchasable" class="text-sm font-medium text-gray-400">Make Purchasable?</label>
+            </div>
+
+            <div id="modal_price_field" class="mb-3 hidden">
+                <label for="modal_price" class="block text-sm font-medium text-gray-400 mb-1">Price ($)</label>
+                <input type="number" id="modal_price" name="price" step="0.01" class="w-full p-2 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 text-white" placeholder="e.g., 9.99">
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Post</button>
+        </form>
     </div>
-  </div>
 </div>
 
-<div id="mediaModal" class="modal hidden fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center">
-  <button onclick="closeMediaModal()" class="absolute top-4 right-4 text-white text-4xl">&times;</button>
-  <div class="max-w-4xl w-full max-h-screen">
-    <img id="expandedImage" src="" alt="Full View" class="hidden max-h-screen max-w-full mx-auto">
-    <video id="expandedVideo" controls class="hidden max-h-screen max-w-full mx-auto"></video>
-  </div>
+<div id="sendMoneyModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+    <div class="bg-gray-800 rounded-lg p-6 w-11/12 md:w-1/2 lg:w-1/3 relative text-white border border-gray-700">
+        <button onclick="closeSendMoneyModal()" class="absolute top-3 right-3 text-gray-400 hover:text-white text-xl">&times;</button>
+        <h2 class="text-2xl font-bold mb-4">Send Money</h2>
+        <form id="send-money-form" action="{{ url_for('views.send_money') }}" method="POST">
+            <div class="mb-4">
+                <label for="recipient_username" class="block text-gray-400 text-sm font-bold mb-2">Recipient Username:</label>
+                <input type="text" id="recipient_username" name="recipient_username" required class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="mb-4">
+                <label for="amount" class="block text-gray-400 text-sm font-bold mb-2">Amount ($):</label>
+                <input type="number" id="amount" name="amount" step="0.01" min="0.01" required class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="mb-4">
+                <label for="description" class="block text-gray-400 text-sm font-bold mb-2">Description (Optional):</label>
+                <textarea id="description" name="description" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:shadow-outline"></textarea>
+            </div>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">Send Money</button>
+        </form>
+    </div>
 </div>
+
 {% endblock %}
 
-
-<style>
-@media (max-width: 767px) {
-  .sidebar { display: none !important; }
-}
-</style>
-
+{% block scripts %}
+<script src="https://js.stripe.com/v3/"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // --- Modal Functions (for delete confirmation) ---
-  window.openModal = function(postId) {
-    document.getElementById(`modal-${postId}`).classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-  };
-  window.closeModal = function(postId) {
-    document.getElementById(`modal-${postId}`).classList.add('hidden');
-    document.body.style.overflow = '';
-  };
-  
-  // --- Story Modal Functions ---
-  window.openStoryModal = function(mediaType, mediaPath, username) {
-    const modal = document.getElementById("storyModal");
-    const img = document.getElementById("modalImage");
-    const video = document.getElementById("modalVideo");
-    const profileLink = document.getElementById("storyProfileLink");
-    
-    // Set the profile link
-    profileLink.href = `/user/${username}`;
-    
-    if (mediaType === "image") {
-      img.src = mediaPath;
-      img.classList.remove('hidden');
-      video.classList.add('hidden');
-    } else if (mediaType === "video") {
-      video.src = mediaPath;
-      video.classList.remove('hidden');
-      img.classList.add('hidden');
-      video.play().catch(e => console.log("Video play error:", e));
-    }
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-  };
-  
-  window.closeStoryModal = function() {
-    const modal = document.getElementById("storyModal");
-    modal.classList.add('hidden');
-    const video = document.getElementById("modalVideo");
-    if (video && !video.paused) video.pause();
-    document.body.style.overflow = '';
-  };
-  
-  // --- Media Modal Functions (kept, but no longer used for feed posts directly) ---
-  // If you decide to re-enable direct media clicks on feed, you can uncomment this part
-  /*
-  window.openMediaModal = function(mediaType, mediaPath) {
-    const modal = document.getElementById("mediaModal");
-    const img = document.getElementById("expandedImage");
-    const video = document.getElementById("expandedVideo");
-    
-    if (mediaType === "image") {
-      img.src = mediaPath;
-      img.classList.remove('hidden');
-      video.classList.add('hidden');
-    } else if (mediaType === "video") {
-      video.src = mediaPath;
-      video.classList.remove('hidden');
-      img.classList.add('hidden');
-      video.play().catch(e => console.log("Video play error:", e));
-    }
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-  };
-  
-  window.closeMediaModal = function() {
-    const modal = document.getElementById("mediaModal");
-    modal.classList.add('hidden');
-    const video = document.getElementById("expandedVideo");
-    if (video && !video.paused) video.pause();
-    document.body.style.overflow = '';
-  };
-  */
-  
-  // --- Video Play Function (not directly used for feed post media clicks anymore, but can be for other videos) ---
-  window.playVideo = function(videoElement) {
-    // Find the parent container
-    const container = videoElement.closest('.media-container');
-    const playButton = container.querySelector('.play-button');
-    
-    if (videoElement.paused) {
-      videoElement.play()
-        .then(() => {
-          // Hide play button when video starts playing
-          if (playButton) playButton.style.display = 'none';
-        })
-        .catch(e => console.log("Video play error:", e));
-    } else {
-      videoElement.pause();
-      // Show play button when video is paused
-      if (playButton) playButton.style.display = 'flex';
-    }
-  };
-  
-  // Close modals when clicking outside
-  window.onclick = function(event) {
-    document.querySelectorAll('.modal').forEach(modal => {
-      if (event.target === modal) {
-        modal.classList.add('hidden');
-        document.body.style.overflow = '';
-        
-        // Stop videos if they're playing
-        const videos = modal.querySelectorAll('video');
-        videos.forEach(video => {
-          if (!video.paused) video.pause();
+  // Stripe integration (if needed for direct payments, not just Django banking)
+  const stripe = Stripe('{{ STRIPE_PUBLIC_KEY }}'); // Your Stripe publishable key
+
+  document.querySelectorAll('.buy-item-button').forEach(button => {
+    button.addEventListener('click', async (event) => {
+      const postId = event.target.dataset.postId;
+      const postName = event.target.dataset.postName;
+      const postPrice = parseInt(event.target.dataset.postPrice); // Price in cents
+
+      try {
+        const response = await fetch('{{ DJANGO_WEB_APP_BASE_URL }}/payments/create-checkout-session/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken') // Assuming Django CSRF token, adapt if Flask
+          },
+          body: JSON.stringify({
+            post_id: postId,
+            item_name: postName,
+            price: postPrice,
+            quantity: 1
+          })
         });
+
+        if (!response.ok) {
+          throw new Error('Failed to create Stripe checkout session.');
+        }
+
+        const session = await response.json();
+
+        const result = await stripe.redirectToCheckout({
+          sessionId: session.sessionId
+        });
+
+        if (result.error) {
+          alert(result.error.message);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred during the purchase process. Please try again.');
       }
     });
-  };
-  
-  // --- Buy Item Function (Modified to use Django Stripe API) ---
-  window.buyItem = async function(postId, price) {
-    const djangoApiBaseUrl = "https://gax-2.onrender.com/api/accounts"; // Django API URL
-    const stripePublicKey = "{{ STRIPE_PUBLIC_KEY }}"; // You need to pass this from Flask backend if using Stripe.js client-side
-    
-    // For this to work, Flask needs the Django API token.
-    // In a full integration, you'd fetch this token after Flask user logs in.
-    // For now, we'll assume a token is available or that Django's API is accessible
-    // without a token for this specific endpoint (which is unlikely for payment).
-    // The most robust way is to make this a Flask backend call, then redirect.
-    
-    // Since the user asked for a direct redirect to Django for payment,
-    // and Django's `create_stripe_session` is an API endpoint expecting POST,
-    // the most seamless way is for Flask's JS to make the POST and then redirect.
-    
-    // Check if current_user.id is available and pass it to Django for user mapping
-    const userId = "{{ current_user.id }}"; // Flask's current user ID
-    
-    try {
-      const response = await fetch(`${djangoApiBaseUrl}/stripe-session/`, {
+  });
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // --- Modals JS ---
+  const createPostModal = document.getElementById('createPostModal');
+  const sendMoneyModal = document.getElementById('sendMoneyModal');
+
+  function openCreatePostModal() {
+    createPostModal.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden'); // Prevent scrolling
+  }
+
+  function closeCreatePostModal() {
+    createPostModal.classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+  }
+
+  function openSendMoneyModal() {
+    sendMoneyModal.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+  }
+
+  function closeSendMoneyModal() {
+    sendMoneyModal.classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+  }
+
+  // Close modals if clicking outside
+  window.addEventListener('click', function(event) {
+    if (event.target == createPostModal) {
+      closeCreatePostModal();
+    }
+    if (event.target == sendMoneyModal) {
+      closeSendMoneyModal();
+    }
+  });
+
+  // Handle media file type for post creation
+  document.getElementById('media_upload').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    const mediaTypeInput = document.getElementById('media_type');
+    if (file) {
+      if (file.type.startsWith('image/')) {
+        mediaTypeInput.value = 'image';
+      } else if (file.type.startsWith('video/')) {
+        mediaTypeInput.value = 'video';
+      } else {
+        mediaTypeInput.value = '';
+      }
+    } else {
+      mediaTypeInput.value = '';
+    }
+  });
+
+  document.getElementById('modal_media_upload').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    const mediaTypeInput = document.getElementById('modal_media_type');
+    if (file) {
+      if (file.type.startsWith('image/')) {
+        mediaTypeInput.value = 'image';
+      } else if (file.type.startsWith('video/')) {
+        mediaTypeInput.value = 'video';
+      } else {
+        mediaTypeInput.value = '';
+      }
+    } else {
+      mediaTypeInput.value = '';
+    }
+  });
+
+
+  // Toggle price field based on "is_purchasable" checkbox
+  document.getElementById('is_purchasable').addEventListener('change', function() {
+    document.getElementById('price_field').classList.toggle('hidden', !this.checked);
+  });
+  document.getElementById('modal_is_purchasable').addEventListener('change', function() {
+    document.getElementById('modal_price_field').classList.toggle('hidden', !this.checked);
+  });
+
+  // --- Like button functionality ---
+  document.querySelectorAll('.like-button').forEach(button => {
+    button.addEventListener('click', function() {
+      const postId = this.dataset.postId;
+      fetch(`{{ url_for('views.like_post', post_id=0) }}`.replace('0', postId), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // 'Authorization': `Token ${FLASK_APP_DJANGO_API_TOKEN}` // Uncomment if Flask has a Django token
-        },
-        body: JSON.stringify({ 
-          amount: Math.round(price * 100), // Stripe amount in kobo/cents
-          user_id: userId // Pass Flask user ID to Django for mapping
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to initiate payment.');
-      }
-
-      const data = await response.json();
-      if (data.sessionId) {
-        // Redirect to Stripe Checkout
-        window.location.href = `https://checkout.stripe.com/pay/${data.sessionId}`;
-      } else {
-        showNotification('Failed to get Stripe session ID from banking app.', false);
-      }
-    } catch (error) {
-      console.error('Error initiating Stripe session:', error);
-      showNotification(`Payment initiation failed: ${error.message}`, false);
-    }
-  };
-  
-  // --- Send Money Modal Functions ---
-  window.openSendMoneyModal = function() {
-    document.getElementById('sendMoneyModal').classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-  };
-
-  window.closeSendMoneyModal = function() {
-    document.getElementById('sendMoneyModal').classList.add('hidden');
-    document.body.style.overflow = '';
-  };
-
-  // --- Create Post Form: Media Preview & Submission ---
-  const form = document.getElementById('create-post-form');
-  if (form) {
-    const fileInputs = form.querySelectorAll('input[type="file"]');
-    const previewContainer = document.getElementById('media-preview');
-    
-    fileInputs.forEach(input => {
-      input.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        // Clear other file inputs
-        fileInputs.forEach(otherInput => {
-          if (otherInput !== input) otherInput.value = '';
-        });
-        
-        previewContainer.innerHTML = '';
-        previewContainer.classList.remove('hidden');
-        
-        if (file.type.startsWith('image/')) {
-          const img = document.createElement('img');
-          img.className = 'w-full max-h-64 object-contain rounded-lg mt-2';
-          const reader = new FileReader();
-          reader.onload = e => { img.src = e.target.result; };
-          reader.readAsDataURL(file);
-          previewContainer.appendChild(img);
-        } else if (file.type.startsWith('video/')) {
-          const video = document.createElement('video');
-          video.controls = true;
-          video.className = 'w-full max-h-64 object-contain rounded-lg mt-2';
-          const reader = new FileReader();
-          reader.onload = e => { video.src = e.target.result; };
-          reader.readAsDataURL(file);
-          previewContainer.appendChild(video);
         }
-        
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'mt-2 text-red-400 hover:text-red-300 font-medium';
-        removeBtn.innerHTML = 'Remove Media';
-        removeBtn.onclick = function(e) {
-          e.preventDefault();
-          input.value = '';
-          previewContainer.innerHTML = '';
-          previewContainer.classList.add('hidden');
-        };
-        previewContainer.appendChild(removeBtn);
-      });
-    });
-    
-    form.addEventListener('submit', function(event) {
-      event.preventDefault();
-      const submitBtn = form.querySelector('button[type="submit"]');
-      const originalBtnText = submitBtn.innerHTML;
-      submitBtn.innerHTML = 'Posting...';
-      submitBtn.disabled = true;
-      
-      const formData = new FormData(form);
-      fetch(form.action, {
-        method: 'POST',
-        body: formData,
-        credentials: 'same-origin'
       })
-      .then(response => {
-        if (response.ok) return response.json();
-        throw new Error('Failed to create post.');
-      })
+      .then(response => response.json())
       .then(data => {
-        form.reset();
-        if (previewContainer) {
-          previewContainer.innerHTML = '';
-          previewContainer.classList.add('hidden');
+        if (data.liked !== undefined) {
+          const likesCountSpan = this.querySelector('.likes-count');
+          likesCountSpan.textContent = data.likes_count;
+          if (data.liked) {
+            this.classList.add('text-blue-500');
+            this.classList.remove('hover:text-blue-400');
+          } else {
+            this.classList.remove('text-blue-500');
+            this.classList.add('hover:text-blue-400');
+          }
         }
-        showNotification('Post created successfully! 🎉', true);
-        submitBtn.innerHTML = originalBtnText;
-        submitBtn.disabled = false;
-        setTimeout(() => location.reload(), 2000);
       })
-      .catch(error => {
-        showNotification('There was an error posting. 🚫', false);
-        submitBtn.innerHTML = originalBtnText;
-        submitBtn.disabled = false;
-      });
-    });
-  }
-  
-  // --- Story Carousel Horizontal Scroll ---
-  document.querySelectorAll('.story-carousel').forEach(carousel => {
-    carousel.addEventListener('wheel', (e) => {
-      if (e.deltaY !== 0) {
-        e.preventDefault();
-        carousel.scrollLeft += e.deltaY;
-      }
-    });
-    
-    // Touch scroll for mobile
-    let isDown = false;
-    let startX;
-    let scrollLeft;
-    
-    carousel.addEventListener('mousedown', (e) => {
-      isDown = true;
-      startX = e.pageX - carousel.offsetLeft;
-      scrollLeft = carousel.scrollLeft;
-      carousel.style.cursor = 'grabbing';
-    });
-    
-    carousel.addEventListener('mouseleave', () => {
-      isDown = false;
-      carousel.style.cursor = 'grab';
-    });
-    
-    carousel.addEventListener('mouseup', () => {
-      isDown = false;
-      carousel.style.cursor = 'grab';
-    });
-    
-    carousel.addEventListener('mousemove', (e) => {
-      if (!isDown) return;
-      e.preventDefault();
-      const x = e.pageX - carousel.offsetLeft;
-      const walk = (x - startX) * 2; // Scroll speed
-      carousel.scrollLeft = scrollLeft - walk;
+      .catch(error => console.error('Error:', error));
     });
   });
-  
-  // --- Check if videos exist and preload with poster ---
-  document.querySelectorAll('video:not([controls])').forEach(video => {
-    // For autoplay videos in stories
-    video.addEventListener('loadeddata', function() {
-      video.play().catch(e => console.log("Autoplay prevented:", e));
-    });
-  });
-  
-  // --- Video Play Buttons ---
-  // This section is more relevant for videos that are NOT part of a link
-  document.querySelectorAll('.media-container video').forEach(video => {
-    // This part should be removed if the video is always part of a link to view_post
-    // If you add videos that are not linked to a view_post page, you might want this
-    // For the current setup, the click will navigate to view_post.html
-    /*
-    const container = video.closest('.media-container');
-    const playButton = container.querySelector('.play-button');
-    
-    video.addEventListener('click', function(e) {
-      e.stopPropagation();
-      if (video.paused) {
-        video.play().then(() => {
-          if (playButton) playButton.style.display = 'none';
-        }).catch(e => console.log("Play error:", e));
-      } else {
-        video.pause();
-        if (playButton) playButton.style.display = 'flex';
-      }
-    });
-    
-    video.addEventListener('ended', function() {
-      if (playButton) playButton.style.display = 'flex';
-    });
-    */
-  });
-  
-  // --- Notification System ---
-  window.showNotification = function(message, isSuccess = true) {
-    const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transition-opacity duration-500 ${isSuccess ? 'bg-green-600' : 'bg-red-600'}`;
-    notification.innerHTML = message;
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-      notification.style.opacity = '0';
-      setTimeout(() => notification.remove(), 500);
-    }, 3000);
-  };
-  
-  // --- Improved Media Handling for Feed Posts ---
-  // Fix for images not displaying properly
-  document.querySelectorAll('.media-container img').forEach(img => {
-    img.addEventListener('error', function() {
-      // If image fails to load, replace with placeholder
-      this.src = '/static/default.jpg';
-      console.log("Image failed to load, replaced with default");
-    });
-    
-    // Preload images for better performance
-    if (img.complete) {
-      // If already loaded, ensure proper display
-      img.style.display = 'block';
-    } else {
-      img.onload = function() {
-        // When loaded, ensure proper display
-        this.style.display = 'block';
-      };
-    }
-  });
-  
-  // Fix for videos not playing properly
-  document.querySelectorAll('.media-container video').forEach(video => {
-    // Add poster if not present
-    if (!video.hasAttribute('poster')) {
-      video.setAttribute('poster', '/static/default-thumbnail.jpg');
-    }
-    
-    // Ensure video can be played
-    video.addEventListener('error', function(e) {
-      console.log("Video error:", e);
-      // Display error message over video
-      const container = this.closest('.media-container');
-      const errorMsg = document.createElement('div');
-      errorMsg.className = 'absolute inset-0 flex items-center justify-center bg-black bg-opacity-70 text-white text-center p-4';
-      errorMsg.innerHTML = 'Video could not be loaded';
-      container.appendChild(errorMsg);
-    });
-  });
-  
-  // --- Reels-Style Horizontal Scrolling for Video Content ---
-  // Create a reels section if it doesn't exist yet
-  if (document.querySelector('.reels-section') === null && document.querySelectorAll('.media-container video').length > 0) {
-    const mainContent = document.querySelector('.w-full.md\\:w-3\\/4.lg\\:w-4\\/5');
-    
-    if (mainContent) {
-      const reelsSection = document.createElement('div');
-      reelsSection.className = 'reels-section bg-gray-800 rounded-xl shadow-lg p-4 border border-gray-700 mb-4';
-      reelsSection.innerHTML = `
-        <h3 class="text-lg font-bold mb-4">Trending Reels</h3>
-        <div class="reels-container flex overflow-x-auto gap-3 pb-2 snap-x">
-          </div>
-      `;
-      
-      const insertAfter = mainContent.querySelector('.bg-gray-800:nth-child(3)') || mainContent.querySelector('.bg-gray-800:first-child');
-      if (insertAfter && insertAfter.nextSibling) {
-        mainContent.insertBefore(reelsSection, insertAfter.nextSibling);
-      } else {
-        mainContent.prepend(reelsSection);
-      }
-      
-      const reelsContainer = reelsSection.querySelector('.reels-container');
-      document.querySelectorAll('.media-container video').forEach((video, index) => {
-        if (index < 10) { 
-          const post = video.closest('.bg-gray-800.rounded-xl');
-          if (post) {
-            const user = post.querySelector('a.font-bold')?.textContent || 'User';
-            const caption = post.querySelector('div.px-4.pb-3 p')?.textContent || '';
-            
-            const reelItem = document.createElement('div');
-            reelItem.className = 'reel-item flex-shrink-0 w-48 h-80 rounded-xl overflow-hidden cursor-pointer relative snap-start';
-            const videoSrc = video.querySelector('source')?.src || video.src;
-            const posterSrc = video.getAttribute('poster') || '/static/default-thumbnail.jpg';
-            reelItem.innerHTML = `
-              <video muted loop class="w-full h-full object-cover" poster="${posterSrc}">
-                <source src="${videoSrc}" type="video/mp4">
-              </video>
-              <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-              <div class="absolute bottom-0 left-0 right-0 p-3">
-                <div class="text-white text-sm font-medium">${user}</div>
-                <p class="text-white text-xs truncate">${caption}</p>
-                <div class="flex items-center justify-between mt-2">
-                  <button class="bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-full px-3 py-1">
-                    Watch
-                  </button>
-                  <div class="text-white">❤️ <span>0</span></div>
-                </div>
-              </div>
-            `;
-            const reelVideo = reelItem.querySelector('video');
-            reelVideo.onerror = function() {
-              this.poster = '/static/default-thumbnail.jpg';
-            };
-            
-            const observer = new IntersectionObserver((entries) => {
-              entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                  reelVideo.play().catch(e => console.log("Autoplay prevented:", e));
-                } else {
-                  reelVideo.pause();
-                }
-              });
-            }, { threshold: 0.7 });
-            
-            observer.observe(reelItem);
-            
-            reelsContainer.appendChild(reelItem);
-            
-            reelItem.addEventListener('click', () => {
-              openMediaModal('video', reelVideo.querySelector('source')?.src || reelVideo.src);
-            });
+
+  // --- Follow button functionality ---
+  document.querySelectorAll('.follow-button').forEach(button => {
+    button.addEventListener('click', function() {
+      const userId = this.dataset.userId;
+      fetch(`{{ url_for('views.follow_user', user_id=0) }}`.replace('0', userId), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.following !== undefined) {
+          if (data.following) {
+            this.textContent = 'Unfollow';
+            this.classList.remove('bg-gray-700', 'text-gray-300', 'hover:bg-blue-600', 'hover:text-white');
+            this.classList.add('bg-blue-600', 'text-white');
+          } else {
+            this.textContent = 'Follow';
+            this.classList.remove('bg-blue-600', 'text-white');
+            this.classList.add('bg-gray-700', 'text-gray-300', 'hover:bg-blue-600', 'hover:text-white');
           }
         }
-      });
-    }
-  }
-  
-  const feedGrid = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.gap-4');
-  if (feedGrid && window.innerWidth >= 1024) {
-    feedGrid.classList.remove('md:grid-cols-2');
-    feedGrid.classList.add('md:grid-cols-1', 'max-w-2xl', 'mx-auto');
-    
-    feedGrid.querySelectorAll('.bg-gray-800.rounded-xl').forEach(post => {
-      post.classList.add('hover:border-blue-500', 'transition-all', 'duration-300');
-      
-      const mediaContainer = post.querySelector('.media-container');
-      if (mediaContainer) {
-        mediaContainer.classList.add('border-t', 'border-b', 'border-gray-700');
-        
-        const media = mediaContainer.querySelector('img, video');
-        if (media) {
-          media.classList.remove('h-64');
-          media.classList.add('h-auto', 'max-h-[500px]', 'w-full');
-        }
-      }
+      })
+      .catch(error => console.error('Error:', error));
     });
-  }
-  
- 
-  const isMobile = window.innerWidth <= 768;
-  if (isMobile) {
-    const reelsContainer = document.querySelector('.reels-container');
-    if (reelsContainer) {
-      let startX, moved;
-      
-      reelsContainer.addEventListener('touchstart', (e) => {
-        startX = e.touches[0].clientX;
-        moved = false;
-      }, { passive: true });
-      
-      reelsContainer.addEventListener('touchmove', () => {
-        moved = true;
-      }, { passive: true });
-      
-      reelsContainer.addEventListener('touchend', (e) => {
-        if (!moved) {
-          const reel = e.target.closest('.reel-item');
-          if (reel) {
-            const video = reel.querySelector('video');
-            if (video.paused) {
-              video.play().catch(e => console.log("Play error:", e));
-            } else {
-              video.pause();
-            }
-          }
+  });
+
+  // --- Notification Polling ---
+  function updateNotificationCount() {
+    fetch('{{ url_for('notifications.get_notification_count') }}')
+      .then(response => response.json())
+      .then(data => {
+        const countElement = document.getElementById('notification-count');
+        if (data.count > 0) {
+          countElement.textContent = data.count;
+          countElement.style.display = 'block';
+        } else {
+          countElement.style.display = 'none';
         }
-      });
-    }
-    
-    const mobileNav = document.querySelector('.md\\:hidden.fixed.bottom-0');
-    if (mobileNav) {
-      mobileNav.classList.add('backdrop-blur-md', 'bg-gray-900/90');
-    }
+      })
+      .catch(error => console.error('Error fetching notification count:', error));
   }
-  
-  
-  const posts = document.querySelectorAll('.bg-gray-800.rounded-xl');
-  const lazyLoadPosts = new IntersectionObserver((entries) => {
+
+  // Poll for notifications every 30 seconds
+  setInterval(updateNotificationCount, 30000);
+  updateNotificationCount(); // Initial load
+
+  // --- Lazy Loading for images and videos ---
+  const posts = document.querySelectorAll('.post-card');
+  const lazyLoadPosts = new IntersectionObserver((entries, observer) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        entry.target.classList.add('animate-fadeIn');
-        
-        const mediaContainer = entry.target.querySelector('.media-container');
-        if (mediaContainer) {
-          const img = mediaContainer.querySelector('img[data-src]');
-          if (img) {
-            img.src = img.dataset.src;
-            delete img.dataset.src;
+        const postCard = entry.target;
+        const img = postCard.querySelector('img.lazyload');
+        const video = postCard.querySelector('video.lazyload');
+
+        if (img && img.dataset.src) {
+          img.src = img.dataset.src;
+          delete img.dataset.src;
+        }
+
+        if (video && video.dataset.src) {
+          const source = video.querySelector('source');
+          if (source) {
+            source.src = video.dataset.src;
+            video.load();
           }
-          
-          const video = mediaContainer.querySelector('video[data-src]');
-          if (video) {
-            const source = video.querySelector('source');
-            if (source) {
-              source.src = video.dataset.src;
-              video.load();
-            }
-            delete video.dataset.src;
-          }
+          delete video.dataset.src;
         }
         
         lazyLoadPosts.unobserve(entry.target);
@@ -915,25 +599,97 @@ document.addEventListener('DOMContentLoaded', function() {
       z-index: 10;
     }
     .play-button {
-      opacity: 0.8;
-      transition: opacity 0.2s;
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
-    .play-button:hover {
+    .video-container:hover .play-button {
       opacity: 1;
     }
-    .story-item {
-      transition: transform 0.2s;
-    }
-    .story-item:hover {
-      transform: scale(1.05);
-    }
-    .reel-item video {
-      transition: transform 0.3s;
-    }
-    .reel-item:hover video {
-      transform: scale(1.05);
+    .video-container video:hover + .play-button { /* Hide play button when video is hovered and controls are shown */
+        opacity: 0;
     }
   `;
   document.head.appendChild(styleEl);
-});
+
+  // Play button for videos
+  document.querySelectorAll('.video-container').forEach(container => {
+    const video = container.querySelector('video');
+    const playButton = container.querySelector('.play-button');
+
+    // Show play button only when video is paused or at start
+    video.addEventListener('play', () => {
+        playButton.style.display = 'none';
+    });
+    video.addEventListener('pause', () => {
+        playButton.style.display = 'flex';
+    });
+    video.addEventListener('ended', () => {
+        playButton.style.display = 'flex';
+    });
+
+    playButton.addEventListener('click', () => {
+        if (video.paused) {
+            video.play();
+            playButton.style.display = 'none';
+        } else {
+            video.pause();
+            playButton.style.display = 'flex';
+        }
+    });
+  });
+
+  // Handle post creation form submission with AJAX
+  document.getElementById('create-post-form').addEventListener('submit', function(e) {
+      e.preventDefault(); // Prevent default form submission
+
+      const form = e.target;
+      const formData = new FormData(form);
+
+      fetch(form.action, {
+          method: 'POST',
+          body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              alert(data.message); // Or use a flash message system
+              // Optionally, dynamically add the new post to the feed without a full page reload
+              window.location.reload(); // For now, reload the page to see the new post
+          } else {
+              alert('Error: ' + data.message); // Display error message
+          }
+      })
+      .catch(error => {
+          console.error('Error:', error);
+          alert('An unexpected error occurred.');
+      });
+  });
+
+  document.getElementById('modal-create-post-form').addEventListener('submit', function(e) {
+      e.preventDefault(); // Prevent default form submission
+
+      const form = e.target;
+      const formData = new FormData(form);
+
+      fetch(form.action, {
+          method: 'POST',
+          body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              alert(data.message); // Or use a flash message system
+              closeCreatePostModal(); // Close the modal
+              window.location.reload(); // Reload to see the new post
+          } else {
+              alert('Error: ' + data.message); // Display error message
+          }
+      })
+      .catch(error => {
+          console.error('Error:', error);
+          alert('An unexpected error occurred.');
+      });
+  });
+
 </script>
+{% endblock %}

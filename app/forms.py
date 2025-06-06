@@ -8,8 +8,6 @@ from wtforms import   BooleanField
 from wtforms.fields import EmailField  
 
 
-
-
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[InputRequired(), Email()])
     password = PasswordField('Password', validators=[InputRequired()])
@@ -81,5 +79,8 @@ class ReelForm(FlaskForm):
     ])
     submit = SubmitField('Post Reel')
 
-
-
+class SendMoneyForm(FlaskForm):
+    recipient_username = StringField('Recipient Username', validators=[DataRequired()])
+    amount = FloatField('Amount', validators=[DataRequired()])
+    description = TextAreaField('Description', validators=[Optional(), Length(max=200)])
+    submit = SubmitField('Send Money')
