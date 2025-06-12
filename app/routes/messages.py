@@ -1,14 +1,19 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, abort, jsonify
 from flask_login import login_required, current_user
 from datetime import datetime
+import logging
 from app.models.models import User, Conversation, ConversationParticipant, Message as MsgModel
 from app.extensions import db
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 messages = Blueprint('messages', __name__)
 
 @messages.route('/inbox')
 @login_required
 def inbox():
+    logger.info(f"User {current_user.id} accessed inbox")
     conversations = current_user.get_conversations()
     return render_template(
         'messages.html',
@@ -20,8 +25,10 @@ def inbox():
 @messages.route('/conversation/<int:conversation_id>', methods=['GET'])
 @login_required
 def view_conversation(conversation_id):
+    logger.info(f"User {current_user.id} viewing conversation {conversation_id}")
     conversation = Conversation.query.get_or_404(conversation_id)
     if not conversation.is_participant(current_user.id):
+        logger.warning(f"Unauthorized access attempt to conversation {conversation_id} by user {current_user.id}")
         abort(403)
     participant = ConversationParticipant.query.filter_by(
         conversation_id=conversation_id, user_id=current_user.id).first()
@@ -40,11 +47,13 @@ def view_conversation(conversation_id):
 @messages.route('/conversation/<int:conversation_id>/send', methods=['POST'])
 @login_required
 def send_message(conversation_id):
+    logger.info(f"User {current_user.id} attempting to send message in conversation {conversation_id}")
     conversation = Conversation.query.get_or_404(conversation_id)
     if not conversation.is_participant(current_user.id):
         abort(403)
     content = request.form.get('content')
     if not content or content.strip() == '':
+        logger.warning(f"User {current_user.id} attempted to send empty message")
         flash("Message cannot be empty", "error")
         return redirect(url_for('messages.view_conversation', conversation_id=conversation_id))
     message = MsgModel(
@@ -72,6 +81,7 @@ def send_message(conversation_id):
 @messages.route('/new-conversation', methods=['GET'])
 @login_required
 def new_conversation_form():
+    logger.info(f"User {current_user.id} accessing new conversation form")
     users = User.query.filter(User.id != current_user.id).limit(20).all()  # Show first 20 by default
     return render_template('new_conversation.html', users=users)
 
@@ -193,3 +203,13 @@ def api_conversation_messages(conversation_id):
             'is_mine': msg.user_id == current_user.id
         })
     return jsonify(messages_data)
+
+@messages.errorhandler(401)
+def unauthorized_error(error):
+    logger.error(f"Unauthorized access attempt: {request.path}")
+    return jsonify({'error': 'Unauthorized access'}), 401
+
+@messages.errorhandler(403)
+def forbidden_error(error):
+    logger.error(f"Forbidden access attempt by user {current_user.id if not current_user.is_anonymous else 'anonymous'}: {request.path}")
+    return jsonify({'error': 'Forbidden access'}), 403
