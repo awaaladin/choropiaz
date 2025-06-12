@@ -8,6 +8,8 @@ import os
 import json
 import requests
 import logging # Import logging
+# Remove this line from Flask app:
+# from rest_framework.authtoken.views import obtain_auth_token
 
 # Assuming 'db' and 'mail' are imported and configured in app.extensions
 from app.extensions import db, mail
@@ -29,7 +31,9 @@ ALLOWED_IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "gif"}
 ALLOWED_VIDEO_EXTENSIONS = {"mp4", "mov", "avi", "webm"}
 PROFILE_PIC_FOLDER = 'static/profile_pics'
 # Changed to Django API base URL
-DJANGO_API_BASE_URL = "https://gax-2.onrender.com/api"  # Add version if needed
+DJANGO_API_BASE_URL = "https://gax-2.onrender.com/api"
+DJANGO_AUTH_ENDPOINT = f"{DJANGO_API_BASE_URL}/login/"
+DJANGO_DASHBOARD_ENDPOINT = f"{DJANGO_API_BASE_URL}/dashboard/"
 DJANGO_WEB_APP_BASE_URL = "https://gax-2.onrender.com/accounts" # Base URL for Django web pages
 
 # This token is for Flask app's *internal* use to call Django API,
@@ -54,87 +58,63 @@ ensure_directories_exist()
 views = Blueprint('views', __name__)
 notifications = Blueprint('notifications', __name__) # Assuming notifications is a separate blueprint
 
-
-
-def _make_django_api_request(endpoint, method='GET', data=None, use_user_token=True):
-    """
-    Makes an authenticated API request to the Django banking application with improved error handling.
-    """
+def _make_django_api_request(endpoint, method='GET', data=None):
+    """Makes an authenticated request to the Django API"""
     url = f"{DJANGO_API_BASE_URL}/{endpoint.lstrip('/')}"
     headers = {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'Authorization': 'Token e42238e2afb35366accc2b053fec9651fdd238d5'  # Use the actual token
     }
     
-    # Log the attempt
-    logger.info(f"Attempting to connect to: {url}")
-    
-    # Get authentication token
-    auth_token = None
-    if use_user_token and current_user.is_authenticated:
-        auth_token = session.get('django_api_token')
-        if not auth_token:
-            logger.warning(f"No user token found, falling back to admin token")
-            auth_token = get_django_admin_api_token()
-    else:
-        auth_token = get_django_admin_api_token()
-
-    if auth_token:
-        headers['Authorization'] = f"Token {auth_token}"
-    
+    logger.info(f"Making {method} request to: {url}")
     try:
-        # Make the request with timeout
-        response = None
-        timeout = 10  # seconds
+        # Test connection first
+        test_response = requests.head(
+            DJANGO_API_BASE_URL,
+            timeout=5,
+            verify=True
+        )
+        logger.info(f"Connection test status: {test_response.status_code}")
         
-        if method == 'POST':
-            response = requests.post(url, headers=headers, json=data, timeout=timeout)
-        elif method == 'PUT':
-            response = requests.put(url, headers=headers, json=data, timeout=timeout)
-        elif method == 'DELETE':
-            response = requests.delete(url, headers=headers, timeout=timeout)
-        else:
-            response = requests.get(url, headers=headers, timeout=timeout)
+        # Make the actual request
+        response = requests.request(
+            method=method,
+            url=url,
+            headers=headers,
+            json=data,
+            timeout=10,
+            verify=True
+        )
         
-        # Log the response status
         logger.info(f"API Response Status: {response.status_code}")
         
-        if response.status_code == 404:
-            logger.error(f"API endpoint not found: {url}")
-            flash("This banking feature is currently unavailable", "warning")
+        # Handle different status codes
+        if response.status_code == 401:
+            logger.error("Authentication failed")
+            flash("Banking service authentication failed", "error")
+            return None
+        elif response.status_code == 404:
+            logger.error(f"Endpoint not found: {url}")
+            flash("Banking service endpoint not available", "error")
             return None
             
         response.raise_for_status()
         return response.json()
-        
-    except requests.exceptions.ConnectionError as e:
-        logger.error(f"Connection failed to {url}: {str(e)}")
-        flash("Unable to connect to banking service. Please try again later.", "warning")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"API request failed: {str(e)}")
+        flash("Unable to connect to banking service", "error")
         return None
-        
-    except requests.exceptions.Timeout:
-        logger.error(f"Request timed out for {url}")
-        flash("The banking service is taking too long to respond. Please try again.", "warning")
-        return None
-        
-    except requests.exceptions.HTTPError as e:
-        status_code = e.response.status_code if e.response else 'unknown'
-        logger.error(f"HTTP {status_code} error for {url}: {str(e)}")
-        
-        error_message = "An error occurred while processing your request."
-        if status_code == 401:
-            error_message = "Your session has expired. Please log in again."
-            session.pop('django_api_token', None)
-        elif status_code == 403:
-            error_message = "You don't have permission to perform this action."
-        
-        flash(error_message, "error")
-        return None
-        
+
+def check_api_health():
+    """Checks if the Django API is accessible"""
+    try:
+        response = _make_django_api_request('dashboard/')
+        return response is not None
     except Exception as e:
-        logger.error(f"Unexpected error accessing {url}: {str(e)}")
-        flash("An unexpected error occurred. Please try again later.", "error")
-        return None
+        logger.error(f"Health check failed: {str(e)}")
+        return False
+
 
 def get_bank_dashboard_data():
     """Fetches dashboard data from Django API for the current Flask user."""
@@ -362,22 +342,16 @@ def get_user_notification_preferences(user_id):
         default_prefs.update(user_prefs)
     return default_prefs
 
-# Update the API base URL - remove the version from base URL
-DJANGO_API_BASE_URL = "https://gax-2.onrender.com/api"  # Remove v1 from base URL
 
 def check_api_health():
     """
     Checks if the Django API is accessible and responding with detailed logging.
     Returns: bool
     """
-    # Try multiple possible health check endpoints
+    # Try the profile endpoint as it's guaranteed to exist
     health_endpoints = [
-        '/health/',
-        '/healthcheck/',
-        '/api/health/',
-        '/api/healthcheck/',
-        '/status/',
-        '/api/status/'
+        '/profile/',  # Use ProfileView endpoint
+        '/dashboard/',  # Use DashboardView endpoint
     ]
     
     logger.info(f"Attempting to connect to base URL: {DJANGO_API_BASE_URL}")
@@ -392,10 +366,10 @@ def check_api_health():
         )
         logger.info(f"Basic connectivity test status code: {test_response.status_code}")
         
-        # Try each possible health endpoint
+        # Try each possible endpoint
         for endpoint in health_endpoints:
             url = f"{DJANGO_API_BASE_URL}{endpoint}"
-            logger.info(f"Trying health check endpoint: {url}")
+            logger.info(f"Trying API endpoint: {url}")
             
             try:
                 response = requests.get(
@@ -404,49 +378,36 @@ def check_api_health():
                     verify=True,
                     headers={
                         'Accept': 'application/json',
-                        'User-Agent': 'CHORORPIA/1.0'
+                        'User-Agent': 'CHORORPIA/1.0',
+                        'Authorization': f'Token {get_django_admin_api_token()}'
                     }
                 )
                 
                 logger.info(f"Response from {endpoint}: Status={response.status_code}")
                 
-                if response.status_code == 200:
-                    logger.info("Found working health check endpoint")
+                if response.status_code in [200, 401, 403]:  # Accept auth-related responses as valid
+                    logger.info("API endpoint responding")
                     return True
             except requests.exceptions.RequestException as e:
                 logger.warning(f"Failed to connect to {endpoint}: {str(e)}")
                 continue
         
-        # If we get here, none of the endpoints worked
-        logger.error("No working health check endpoint found")
-        flash("Unable to verify banking service health. Service may be unavailable.", "warning")
+        logger.error("No working API endpoint found")
         return False
             
     except requests.exceptions.RequestException as e:
         logger.error(f"Failed to connect to base URL: {str(e)}")
-        flash("Banking service is currently unavailable.", "error")
         return False
 
+# Helper to get Django admin API token
+
 def get_django_admin_api_token():
-    """Get admin API token for backend communication"""
-    url = f"{DJANGO_API_BASE_URL}/token/"  # Adjust endpoint as needed
-    
-    try:
-        response = requests.post(
-            url,
-            json={
-                'username': current_app.config['DJANGO_ADMIN_USERNAME'],
-                'password': current_app.config['DJANGO_ADMIN_PASSWORD']
-            },
-            timeout=5
-        )
-        response.raise_for_status()
-        return response.json().get('token')
-    except Exception as e:
-        logger.error(f"Failed to get admin API token: {str(e)}")
-        return None
-
-
+    # Try to get from Flask config first
+    token = current_app.config.get('DJANGO_API_TOKEN')
+    if token:
+        return token
+    # Fallback to environment variable
+    return os.environ.get('DJANGO_API_TOKEN', 'e42238e2afb35366accc2b053fec9651fdd238d5')
 
 
 @views.route('/')

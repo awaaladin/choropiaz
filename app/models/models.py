@@ -30,6 +30,10 @@ class User(UserMixin, db.Model):
     work = db.Column(db.String(150), nullable=True)
     category = db.Column(db.String(100))  # For search/filtering
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    # Adding new fields
+    full_name = db.Column(db.String(100), nullable=True)
+    phone_number = db.Column(db.String(15), nullable=True)
+    address = db.Column(db.String(255), nullable=True)
 
     # Notification preferences (JSON string)
     notification_preferences = db.Column(

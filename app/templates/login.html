@@ -112,6 +112,7 @@
         </div>
     </div>
 </div>
+<script src="{{ url_for('static', filename='js/api.js') }}"></script>
 <script>
 function togglePassword(inputId) {
     const input = document.getElementById(inputId);
@@ -124,5 +125,52 @@ function togglePassword(inputId) {
         icon.classList.replace('bi-eye-slash', 'bi-eye');
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('login-form');
+    const apiErrors = document.getElementById('api-errors');
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const username = form.email.value; // email field is used for username/email
+        const password = form.password.value;
+
+        // First try to log in with Django API
+        const djangoResult = await DjangoAPI.login(username, password);
+        
+        // Then submit to Flask backend
+        try {
+            const flaskResponse = await fetch('/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': form.querySelector('input[name="csrf_token"]').value
+                },
+                body: JSON.stringify({
+                    email: username,
+                    password: password,
+                    remember_me: form.remember_me.checked
+                })
+            });
+
+            if (flaskResponse.ok) {
+                // If Django login was successful, store the token
+                if (djangoResult.success) {
+                    localStorage.setItem('django_api_token', djangoResult.data.token);
+                }
+                window.location.href = '/feed';
+            } else {
+                const data = await flaskResponse.json();
+                apiErrors.textContent = data.error || 'Login failed';
+                apiErrors.classList.remove('hidden');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            apiErrors.textContent = 'Network error during login';
+            apiErrors.classList.remove('hidden');
+        }
+    });
+});
 </script>
 {% endblock %}

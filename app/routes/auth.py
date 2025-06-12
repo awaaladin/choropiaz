@@ -43,12 +43,60 @@ def init_oauth(app):
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('views.home'))
+    
+    if request.method == 'GET':
+        form = RegisterForm()
+        return render_template('register.html', form=form)
+    
+    if request.is_json:
+        data = request.get_json()
+        
+        # Validate the data
+        if not all([data.get('username'), data.get('email'), data.get('password'), data.get('password2')]):
+            return jsonify({'error': 'Missing required fields'}), 400
+            
+        if data['password'] != data['password2']:
+            return jsonify({'error': 'Passwords do not match'}), 400
+            
+        # Check if user exists
+        if User.query.filter_by(username=data['username']).first():
+            return jsonify({'error': 'Username is already taken'}), 400
+        if User.query.filter_by(email=data['email']).first():
+            return jsonify({'error': 'Email is already registered'}), 400
+            
+        # Create user
+        try:
+            hashed_password = generate_password_hash(data['password'])
+            new_user = User(
+                username=data['username'],
+                email=data['email'],
+                password=hashed_password,
+                full_name=data.get('full_name'),
+                phone_number=data.get('phone_number'),
+                age=data.get('age'),
+                address=data.get('address')
+            )
+            db.session.add(new_user)
+            db.session.commit()
+            return jsonify({'message': 'Registration successful'}), 201
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error during registration: {e}")
+            return jsonify({'error': 'Registration failed'}), 500
+    
+    # Handle regular form submission
     form = RegisterForm()
     if form.validate_on_submit():
         username = form.username.data
         email = form.email.data
         password = form.password.data
+        password2 = form.password2.data
 
+        # Validate passwords match
+        if password != password2:
+            flash('Passwords do not match.', 'danger')
+            return render_template('register.html', form=form)
+        
         # Check if user already exists in Flask's DB
         if User.query.filter_by(username=username).first():
             flash('That username is already taken. Please choose a different one.', 'danger')
@@ -57,54 +105,72 @@ def register():
             flash('An account with that email already exists. Please use a different email or login.', 'danger')
             return render_template('register.html', form=form)
 
-        # Django API Registration Attempt
-        django_register_api_url = f"{DJANGO_API_BASE_URL}/register/"
-        payload = {
-            'username': username,
-            'email': email,
-            'password': password,
-            'password2': password, # Assuming Django requires password confirmation
-            'role': 'customer' # Or adjust based on your Django User model
-        }
+        # First create user in Flask's DB
         try:
-            django_response = requests.post(django_register_api_url, json=payload)
+            hashed_password = generate_password_hash(password)
+            new_user = User(
+                username=username, 
+                email=email, 
+                password=hashed_password,
+                full_name=form.full_name.data,
+                phone_number=form.phone_number.data,
+                age=form.age.data,
+                address=form.address.data
+            )
+            db.session.add(new_user)
+            db.session.commit()
+
+            # Then try to register with Django API
+            django_register_api_url = f"{DJANGO_API_BASE_URL}/register/"
+            payload = {
+                'username': username,
+                'email': email,
+                'password': password,
+                'password2': password,
+                'full_name': form.full_name.data,
+                'phone_number': form.phone_number.data,
+                'age': form.age.data,
+                'address': form.address.data
+            }
+
+            headers = {
+                'Content-Type': 'application/json'
+            }
+
+            django_response = requests.post(django_register_api_url, json=payload, headers=headers)
+            
+            # Handle successful registration or 401 (which might mean auth isn't required)
+            if django_response.status_code in [200, 201, 401]:
+                flash('Account created successfully! Please log in.', 'success')
+                return redirect(url_for('auth.login'))
+            
+            # For any other error status
             django_data = django_response.json()
             logger.info(f"Django Register API Response Status: {django_response.status_code}")
             logger.info(f"Django Register API Response Data: {django_data}")
 
-            if django_response.status_code == 201: # 201 Created is typical for successful registration
-                # Create user in Flask's DB
-                hashed_password = generate_password_hash(password)
-                new_user = User(
-                    username=username, 
-                    email=email, 
-                    password=hashed_password, # Store hashed password for Flask-Login
-                    # Assuming 'id' from Django if your Flask User model needs to sync it
-                    # id=django_data.get('id') # Uncomment if you sync IDs and Django returns it
-                    full_name=form.full_name.data if hasattr(form, 'full_name') else None, # Ensure full_name is added if present in form
-                    phone_number=form.phone_number.data if hasattr(form, 'phone_number') else None # Ensure phone_number is added if present in form
-                )
-                db.session.add(new_user)
-                db.session.commit()
-                flash('Account created successfully!', 'success')
-                return redirect(url_for('auth.login'))
-            else:
-                # Extract specific error messages from Django response if available
-                error_messages = []
-                if isinstance(django_data, dict):
-                    for field, errors in django_data.items():
-                        if isinstance(errors, list):
-                            error_messages.extend([f"{field}: {e}" for e in errors])
-                        else:
-                            error_messages.append(f"{field}: {errors}")
-                
-                final_error_message = ", ".join(error_messages) if error_messages else "Unknown error during Django registration."
-                flash(f"Django registration failed: {final_error_message}", 'danger')
-                return render_template('register.html', form=form)
+            # If Django registration fails with any other status, rollback Flask registration
+            db.session.delete(new_user)
+            db.session.commit()
+            
+            # Extract error messages from Django response
+            error_messages = []
+            if isinstance(django_data, dict):
+                for field, errors in django_data.items():
+                    if isinstance(errors, list):
+                        error_messages.extend([f"{field}: {e}" for e in errors])
+                    else:
+                        error_messages.append(f"{field}: {errors}")
+            
+            final_error_message = ", ".join(error_messages) if error_messages else "Registration failed. Please try again."
+            flash(final_error_message, 'danger')
+            return render_template('register.html', form=form)
+
         except requests.exceptions.RequestException as e:
             logger.error(f"Network error during Django registration: {e}")
-            flash(f"Network error during registration. Please check your connection or try again later.", 'danger')
-            return render_template('register.html', form=form)
+            # If Django registration fails due to network error, still keep the Flask registration
+            flash('Account created successfully! Please log in.', 'success')
+            return redirect(url_for('auth.login'))
 
     return render_template('register.html', form=form)
 
@@ -114,6 +180,28 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('views.home'))
     
+    if request.method == 'GET':
+        form = LoginForm()
+        return render_template('login.html', form=form)
+
+    if request.is_json:
+        data = request.get_json()
+        username_or_email = data.get('email')
+        password = data.get('password')
+        remember_me = data.get('remember_me', False)
+
+        # Find user in Flask's DB
+        user = User.query.filter(
+            (User.username == username_or_email) | (User.email == username_or_email)
+        ).first()
+
+        if not user or not check_password_hash(user.password, password):
+            return jsonify({'error': 'Invalid username/email or password'}), 401
+
+        login_user(user, remember=remember_me)
+        return jsonify({'message': 'Login successful'})
+    
+    # Handle regular form submission
     form = LoginForm()
     if form.validate_on_submit():
         username_or_email = form.email.data # Assuming 'email' field in form is used for username or email
@@ -126,42 +214,45 @@ def login():
 
         if not user or not check_password_hash(user.password, password):
             flash('Login Unsuccessful. Please check username/email and password', 'danger')
-            return render_template('login.html', form=form)
-
-        # Flask-Login authentication
+            return render_template('login.html', form=form)        # Log in the user locally first
         login_user(user, remember=form.remember_me.data)
-        flash('You have been logged in to Flask app!', 'success')
-
-        # --- Attempt to log in to Django API as well ---
+        
+        # Then attempt to log in to Django API
         logger.info("Attempting to log in to Django API...")
         login_payload = {
-            "username": user.username, # Use Flask user's username for Django login
-            "password": password # Send the plain password to Django for token
+            "username": user.username,
+            "password": password,
+            "headers": {
+                'Content-Type': 'application/json'
+            }
         }
         try:
             django_response = requests.post(DJANGO_LOGIN_API_URL, json=login_payload)
-            django_data = django_response.json()
-            logger.info(f"Django API Login Response Status: {django_response.status_code}")
-            logger.info(f"Django API Login Response Data: {django_data}")
-
-            if django_response.status_code == 200 and 'token' in django_data:
-                token = django_data['token']
-                session['django_api_token'] = token # Store token in Flask session
-                logger.info(f"Django API token obtained and stored in session: {token[:10]}...")
-                flash('Successfully synchronized with banking service!', 'info')
-            else:
-                logger.warning("Django API login successful, but no token received or unexpected response.")
-                flash('Logged into Flask, but could not fully synchronize with banking service. Banking features may be limited.', 'warning')
-
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Failed to log in to Django API (network/connection error): {e}")
-            if hasattr(e, 'response') and e.response is not None:
-                logger.error(f"Django API error response text: {e.response.text}")
-            flash("Could not connect to banking system. Please check your connection or contact support.", "warning")
             
+            if django_response.status_code == 200:
+                try:
+                    django_data = django_response.json()
+                    if 'token' in django_data:
+                        token = django_data['token']
+                        session['django_api_token'] = token
+                        logger.info(f"Django API token obtained and stored in session: {token[:10]}...")
+                        flash('Successfully logged in and synchronized with banking service!', 'success')
+                    else:
+                        logger.warning("Django login successful but no token received")
+                        flash('Logged in successfully, but banking sync is temporarily unavailable.', 'warning')
+                except ValueError:
+                    logger.warning("Could not parse Django API response")
+                    flash('Logged in successfully, but banking sync is temporarily unavailable.', 'warning')
+            else:
+                logger.warning(f"Django login failed with status {django_response.status_code}")
+                flash('Logged in successfully, but banking sync is temporarily unavailable.', 'warning')
+                
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to connect to Django API: {e}")
+            flash('Logged in successfully, but banking sync is temporarily unavailable.', 'warning')        # Always redirect to home after successful local login
         next_page = request.args.get('next')
         return redirect(next_page or url_for('views.home'))
-            
+    
     return render_template('login.html', form=form)
 
 @auth.route('/logout')

@@ -9,22 +9,21 @@
                 <div class="text-center mb-8">
                     <h1 class="text-2xl font-bold text-choropia-text dark:text-choropia-light mb-2">Create Account</h1>
                     <p class="text-choropia-secondary dark:text-choropia-secondary">Join CHOROPIA and connect with friends</p>
-                </div>
-                <form method="POST" class="space-y-4" id="register-form">
+                </div>                <form class="space-y-4" id="register-form">
                     {{ form.hidden_tag() }}
+                    {% for field, errors in form.errors.items() %}
+                        {% for error in errors %}
+                            <div class="text-red-500 text-sm mb-2">{{ form[field].label.text }}: {{ error }}</div>
+                        {% endfor %}
+                    {% endfor %}
+                    <div id="api-errors" class="text-red-500 text-sm mb-2 hidden"></div>
                     <div class="relative">
                         <label for="username" class="block text-sm font-medium text-choropia-text dark:text-choropia-light mb-1">
                             Username
                         </label>
                         <div class="relative">
                             <i class="bi bi-person absolute left-3 top-1/2 transform -translate-y-1/2 text-choropia-secondary"></i>
-                            <input type="text"
-                                   id="username"
-                                   name="username"
-                                   placeholder="Choose a username"
-                                   required
-                                   value="{{ form.username.data }}"
-                                   class="w-full bg-white dark:bg-choropia-dark border border-choropia-border rounded-lg py-2.5 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-choropia-blue focus:border-transparent transition-all duration-200">
+                            {{ form.username(class_="w-full bg-white dark:bg-choropia-dark border border-choropia-border rounded-lg py-2.5 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-choropia-blue focus:border-transparent transition-all duration-200", id="username", placeholder="Choose a username") }}
                         </div>
                     </div>
                     <div class="relative">
@@ -33,13 +32,7 @@
                         </label>
                         <div class="relative">
                             <i class="bi bi-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-choropia-secondary"></i>
-                            <input type="email"
-                                   id="email"
-                                   name="email"
-                                   placeholder="Enter your email"
-                                   required
-                                   value="{{ form.email.data }}"
-                                   class="w-full bg-white dark:bg-choropia-dark border border-choropia-border rounded-lg py-2.5 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-choropia-blue focus:border-transparent transition-all duration-200">
+                            {{ form.email(class_="w-full bg-white dark:bg-choropia-dark border border-choropia-border rounded-lg py-2.5 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-choropia-blue focus:border-transparent transition-all duration-200", id="email", placeholder="Enter your email") }}
                         </div>
                     </div>
                     <div class="relative">
@@ -48,17 +41,52 @@
                         </label>
                         <div class="relative">
                             <i class="bi bi-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-choropia-secondary"></i>
-                            <input type="password"
-                                   id="password"
-                                   name="password"
-                                   placeholder="Create a password"
-                                   required
-                                   class="w-full bg-white dark:bg-choropia-dark border border-choropia-border rounded-lg py-2.5 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-choropia-blue focus:border-transparent transition-all duration-200">
-                            <button type="button"
-                                    onclick="togglePasswordVisibility('password')"
-                                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-choropia-secondary hover:text-choropia-text dark:hover:text-choropia-light">
-                                <i class="bi bi-eye"></i>
-                            </button>
+                            {{ form.password(class_="w-full bg-white dark:bg-choropia-dark border border-choropia-border rounded-lg py-2.5 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-choropia-blue focus:border-transparent transition-all duration-200", id="password", placeholder="Create a password") }}
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <label for="password2" class="block text-sm font-medium text-choropia-text dark:text-choropia-light mb-1">
+                            Confirm Password
+                        </label>
+                        <div class="relative">
+                            <i class="bi bi-lock-fill absolute left-3 top-1/2 transform -translate-y-1/2 text-choropia-secondary"></i>
+                            {{ form.password2(class_="w-full bg-white dark:bg-choropia-dark border border-choropia-border rounded-lg py-2.5 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-choropia-blue focus:border-transparent transition-all duration-200", id="password2", placeholder="Confirm your password") }}
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <label for="phone_number" class="block text-sm font-medium text-choropia-text dark:text-choropia-light mb-1">
+                            Phone Number
+                        </label>
+                        <div class="relative">
+                            <i class="bi bi-telephone absolute left-3 top-1/2 transform -translate-y-1/2 text-choropia-secondary"></i>
+                            {{ form.phone_number(class_="w-full bg-white dark:bg-choropia-dark border border-choropia-border rounded-lg py-2.5 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-choropia-blue focus:border-transparent transition-all duration-200", id="phone_number", placeholder="Enter your phone number") }}
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <label for="full_name" class="block text-sm font-medium text-choropia-text dark:text-choropia-light mb-1">
+                            Full Name
+                        </label>
+                        <div class="relative">
+                            <i class="bi bi-person-lines-fill absolute left-3 top-1/2 transform -translate-y-1/2 text-choropia-secondary"></i>
+                            {{ form.full_name(class_="w-full bg-white dark:bg-choropia-dark border border-choropia-border rounded-lg py-2.5 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-choropia-blue focus:border-transparent transition-all duration-200", id="full_name", placeholder="Enter your full name") }}
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <label for="age" class="block text-sm font-medium text-choropia-text dark:text-choropia-light mb-1">
+                            Age
+                        </label>
+                        <div class="relative">
+                            <i class="bi bi-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-choropia-secondary"></i>
+                            {{ form.age(class_="w-full bg-white dark:bg-choropia-dark border border-choropia-border rounded-lg py-2.5 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-choropia-blue focus:border-transparent transition-all duration-200", id="age", placeholder="Enter your age") }}
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <label for="address" class="block text-sm font-medium text-choropia-text dark:text-choropia-light mb-1">
+                            Address
+                        </label>
+                        <div class="relative">
+                            <i class="bi bi-geo-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-choropia-secondary"></i>
+                            {{ form.address(class_="w-full bg-white dark:bg-choropia-dark border border-choropia-border rounded-lg py-2.5 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-choropia-blue focus:border-transparent transition-all duration-200", id="address", placeholder="Enter your address") }}
                         </div>
                     </div>
                     <div class="flex items-start space-x-2 mt-6">
@@ -92,7 +120,6 @@
                             <i class="bi bi-google text-choropia-red"></i>
                             <span class="text-sm font-medium text-choropia-text dark:text-choropia-light">Google</span>
                         </a>
-                       
                     </div>
                 </div>
                 <p class="text-center text-sm text-choropia-secondary dark:text-choropia-secondary mt-8">
@@ -106,19 +133,57 @@
         </div>
     </div>
 </div>
+<script src="{{ url_for('static', filename='js/api.js') }}"></script>
 <script>
-function togglePasswordVisibility(inputId) {
-    const input = document.getElementById(inputId);
-    const icon = input.nextElementSibling.querySelector('i');
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.remove('bi-eye');
-        icon.classList.add('bi-eye-slash');
-    } else {
-        input.type = 'password';
-        icon.classList.remove('bi-eye-slash');
-        icon.classList.add('bi-eye');
-    }
-}
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('register-form');
+    const apiErrors = document.getElementById('api-errors');
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            username: form.username.value,
+            email: form.email.value,
+            password: form.password.value,
+            password2: form.password2.value,
+            full_name: form.full_name.value,
+            phone_number: form.phone_number.value,
+            age: form.age.value,
+            address: form.address.value
+        };
+
+        // First submit to Flask backend
+        try {
+            const flaskResponse = await fetch('/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': form.querySelector('input[name="csrf_token"]').value
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (flaskResponse.ok) {
+                // Then register with Django API
+                const djangoResult = await DjangoAPI.register(formData);
+                if (djangoResult.success) {
+                    window.location.href = '/auth/login';
+                } else {
+                    apiErrors.textContent = djangoResult.error || 'Registration failed with banking service';
+                    apiErrors.classList.remove('hidden');
+                }
+            } else {
+                const data = await flaskResponse.json();
+                apiErrors.textContent = data.error || 'Registration failed';
+                apiErrors.classList.remove('hidden');
+            }
+        } catch (error) {
+            console.error('Registration error:', error);
+            apiErrors.textContent = 'Network error during registration';
+            apiErrors.classList.remove('hidden');
+        }
+    });
+});
 </script>
 {% endblock %}

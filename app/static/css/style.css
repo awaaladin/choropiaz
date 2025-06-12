@@ -437,6 +437,87 @@ button:hover {
   background: #0056b3;
 }
 
+/* Light mode variables - all white look */
+:root {
+  --bg-color: #fff;
+  --content-bg: #fff;
+  --nav-bg: #fff;
+  --text-color: #1c1e21;
+  --text-secondary: #65676b;
+  --border-color: #eee;
+  --hover-bg: #f5f6fa;
+  --btn-border: #dddfe2;
+  --input-bg: #fff;
+  --input-border: #ccd0d5;
+  --card-bg: #fff;
+  --shadow-color: rgba(0,0,0,0.06);
+  --icon-color: #65676b;
+  --icon-active: #1877f2;
+}
+
+[data-theme="dark"] {
+  --primary-color: #58a6ff;
+  --secondary-color: #2ea043;
+  --bg-color: #0d1117;
+  --content-bg: #161b22;
+  --nav-bg: #161b22;
+  --text-color: #c9d1d9;
+  --text-secondary: #8b949e;
+  --border-color: #30363d;
+  --hover-bg: #1f2937;
+  --btn-border: #30363d;
+  --input-bg: #0d1117;
+  --input-border: #30363d;
+  --card-bg: #21262d;
+  --shadow-color: rgba(0,0,0,0.3);
+  --icon-color: #8b949e;
+  --icon-active: #58a6ff;
+}
+
+body, .profile-container, .profile-header, .profile-content, .card, .about-card, .friends-card, .photos-card, .create-post, .empty-posts, .sidebar, .feed-container, .settings-container, .container {
+  background-color: var(--bg-color) !important;
+  color: var(--text-color) !important;
+}
+
+.profile-header, .cover-photo {
+  background: var(--bg-color) !important;
+  color: var(--text-color) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.card, .about-card, .friends-card, .photos-card, .create-post, .empty-posts {
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-color) !important;
+}
+
+input, textarea, select {
+  background-color: var(--input-bg) !important;
+  color: var(--text-color) !important;
+  border: 1px solid var(--input-border) !important;
+}
+
+button, .btn, .btn-edit-profile, .btn-follow, .btn-following, .btn-message {
+  background-color: var(--hover-bg) !important;
+  color: var(--text-color) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.btn-follow, .btn-following, .btn-message, .btn-edit-profile {
+  background-color: var(--hover-bg) !important;
+  color: var(--text-color) !important;
+}
+
+/* Remove any dark overlays in light mode */
+[data-theme="light"] .edit-overlay {
+  background: rgba(0,0,0,0.04) !important;
+}
+
+/* Ensure profile picture border is visible on white */
+.profile-picture, .profile-pic {
+  border: 4px solid var(--card-bg) !important;
+}
+
 /* Global theme variables */
 :root {
   --primary-color: #1877f2;
