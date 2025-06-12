@@ -71,6 +71,7 @@
         <div class="bg-gray-800 dark:bg-white rounded-xl shadow-lg p-4 mb-4">
           <div class="aspect-w-16 aspect-h-9">
             <iframe 
+              id="banking-iframe"
               src="https://gax-2.onrender.com" 
               class="w-full h-[600px] rounded-lg"
               frameborder="0"
@@ -770,7 +771,7 @@
         headers: { 'Content-Type': 'application/json' }
       })
       .then(res => res.json())
-      .then data => {
+      .then((data) => {
         if (data.success) {
           // Remove post card from DOM
           const postCard = form.closest('.post-card');
@@ -783,12 +784,24 @@
     });
   });
 
-  // Banking section toggle
+  // Banking section toggle with improved token handling
   function toggleBankingSection() {
     const bankingSection = document.getElementById('banking-section');
     const feedSection = document.getElementById('feed-section');
+    const bankingIframe = document.getElementById('banking-iframe');
     
     if (bankingSection.classList.contains('hidden')) {
+      // Get latest token before showing banking section
+      const token = localStorage.getItem('django_api_token') || sessionStorage.getItem('django_api_token');
+      if (token) {
+        const baseUrl = 'https://gax-2.onrender.com';
+        bankingIframe.src = `${baseUrl}?token=${encodeURIComponent(token)}`;
+      } else {
+        // Redirect to bank login if no token
+        window.location.href = 'https://gax-2.onrender.com/accounts/login/';
+        return;
+      }
+      
       bankingSection.classList.remove('hidden');
       feedSection.classList.add('hidden');
     } else {
@@ -797,21 +810,27 @@
     }
   }
 
-  // Initialize banking API when the banking section is shown
+  // Initialize banking integration
   document.addEventListener('DOMContentLoaded', function() {
-    const bankingSection = document.getElementById('banking-section');
+    const bankingIframe = document.getElementById('banking-iframe');
     
-    // When banking section is shown, ensure the token is passed to the iframe
-    bankingSection.addEventListener('show', function() {
-      const iframe = bankingSection.querySelector('iframe');
-      const token = localStorage.getItem('django_api_token');
-      if (token) {
-        // Update iframe src with token
-        const url = new URL(iframe.src);
-        url.searchParams.set('token', token);
-        iframe.src = url.toString();
+    // Listen for messages from banking iframe
+    window.addEventListener('message', function(event) {
+      if (event.origin === 'https://gax-2.onrender.com') {
+        if (event.data.type === 'token') {
+          localStorage.setItem('django_api_token', event.data.token);
+        } else if (event.data.type === 'error') {
+          console.error('Banking error:', event.data.message);
+          alert('Banking error: ' + event.data.message);
+        }
       }
     });
+
+    // Handle iframe load errors
+    bankingIframe.onerror = function() {
+      console.error('Failed to load banking iframe');
+      alert('Failed to connect to banking service. Please try again later.');
+    };
   });
 </script>
 {% endblock %}
