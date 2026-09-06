@@ -407,7 +407,7 @@ def get_django_admin_api_token():
     if token:
         return token
     # Fallback to environment variable
-    return os.environ.get('DJANGO_API_TOKEN', 'e42238e2afb35366accc2b053fec9651fdd238d5')
+    return os.environ.get('DJANGO_API_TOKEN')
 
 
 @views.route('/')
